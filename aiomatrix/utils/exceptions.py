@@ -11,6 +11,7 @@ class MatrixAPIError(Exception):
         super(MatrixAPIError, cls).__init_subclass__(**kwargs)
         if error_code is not None:
             cls.error_code = error_code.upper()
+            # noinspection PyTypeChecker
             cls.__suberrors.append(cls)
 
     @classmethod
@@ -20,9 +21,18 @@ class MatrixAPIError(Exception):
             if err is cls:
                 continue
             if err.error_code == match:
+                # noinspection PyCallingNonCallable
                 raise err(error_code, error, raw_data)
         raise cls(error_code, error, raw_data)
 
 
 class Forbidden(MatrixAPIError, error_code='M_FORBIDDEN'):
+    pass
+
+
+class RoomAliasInUse(MatrixAPIError, error_code='M_ROOM_IN_USE'):
+    pass
+
+
+class Unrecognized(MatrixAPIError, error_code='M_UNRECOGNIZED'):
     pass
