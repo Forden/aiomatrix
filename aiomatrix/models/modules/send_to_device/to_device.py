@@ -2,6 +2,7 @@ from typing import Any, List
 
 import pydantic
 
+
 class Event(pydantic.BaseModel):
     content: Any
     sender: str

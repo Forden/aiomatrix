@@ -10,12 +10,12 @@ class SyncingAPI:
         self.state = dict
 
     async def sync(
-            self, filter: Optional[str] = None, since: Optional[str] = None, full_state: bool = False,
+            self, filter_id: Optional[str] = None, since: Optional[str] = None, full_state: bool = False,
             set_presence: models.SetPresenceEnum = models.SetPresenceEnum.online, timeout: int = 0
     ) -> models.SyncResponse:
         payload = {'data': {}}
-        if filter is not None:
-            payload['data']['filter'] = filter
+        if filter_id is not None:
+            payload['data']['filter'] = filter_id
         if since is not None:
             payload['data']['since'] = since
         if full_state is not None:
