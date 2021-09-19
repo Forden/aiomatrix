@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Optional
 
 import pydantic
@@ -9,7 +10,7 @@ class BasicEvent(pydantic.BaseModel):
 
 
 class UnsignedData(pydantic.BaseModel):
-    age: int
+    age: Optional[int]
     redacted_because: Optional[BasicEvent]
     transcation_id: Optional[str]
 
@@ -19,9 +20,40 @@ class RoomEvent(BasicEvent):
     sender: str
     origin_server_ts: int
     unsigned: Optional[UnsignedData]
-    room_id: str
+    room_id: Optional[str]
 
 
 class StateEvent(RoomEvent):
     state_key: str
     prev_content: Optional[Any]
+
+
+print(StateEvent.schema_json())
+
+
+class Event(BasicEvent):
+    sender: str
+
+
+class StrippedState(Event):
+    state_key: str
+
+
+class RoomMessageEventMsgTypesEnum(str, Enum):
+    text = 'm.text'
+    emote = 'm.emote'
+    notice = 'm.notice'
+    image = 'm.image'
+    file = 'm.file'
+    audio = 'm.audio'
+    location = 'm.location'
+    video = 'm.video'
+
+
+class BasicRoomMessageEventContent(pydantic.BaseModel):
+    body: str
+    msgtype: str
+
+
+class RoomMessageEvent(RoomEvent):
+    content: BasicRoomMessageEventContent

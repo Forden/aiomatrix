@@ -10,3 +10,4 @@ class Aiomatrix:
         self.room_api = apis.RoomsAPI(self._raw_api)
         self.room_membership_api = apis.RoomMembershipAPI(self._raw_api)
         self.listing_room_api = apis.ListingRoomsAPI(self._raw_api)
+        self.sync_api = apis.SyncingAPI(self._raw_api)

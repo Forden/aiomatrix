@@ -31,7 +31,7 @@ class RawAPI:
         async with self._session.request(**args) as resp:
             res = await resp.json()
             # print(args['url'], res)
-            print(resp.url)
+            # print(res)
             if not resp.ok:
                 if 'errcode' in res:
                     raise exceptions.MatrixAPIError.detect(res['errcode'], res['error'], res)
