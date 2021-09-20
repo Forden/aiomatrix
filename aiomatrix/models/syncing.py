@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Dict, List, Optional
 
 import pydantic
@@ -34,7 +33,7 @@ class AccountData(pydantic.BaseModel):
 
 
 class Presence(pydantic.BaseModel):
-    events: List[BasicEvent]
+    events: List[modules.presence.PresenceEvent]
 
 
 class Ephemeral(pydantic.BaseModel):
@@ -78,9 +77,3 @@ class SyncResponse(pydantic.BaseModel):
     to_device: Optional[modules.send_to_device.ToDevice]
     device_lists: Optional[modules.e2ee.DeviceLists]
     device_one_time_keys_count: Optional[Dict[str, int]]
-
-
-class SetPresenceEnum(str, Enum):
-    offline = 'offline'
-    online = 'online'
-    unavailable = 'unavailable'

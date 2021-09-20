@@ -11,19 +11,20 @@ class SyncingAPI:
 
     async def sync(
             self, filter_id: Optional[str] = None, since: Optional[str] = None, full_state: bool = False,
-            set_presence: models.SetPresenceEnum = models.SetPresenceEnum.online, timeout: int = 0
+            set_presence: models.modules.presence.PresenceEnum = models.modules.presence.PresenceEnum.online,
+            timeout: int = 0
     ) -> models.SyncResponse:
-        payload = {'data': {}}
+        payload = {'params': {}}
         if filter_id is not None:
-            payload['data']['filter'] = filter_id
+            payload['params']['filter'] = filter_id
         if since is not None:
-            payload['data']['since'] = since
+            payload['params']['since'] = since
         if full_state is not None:
-            payload['data']['full_state'] = full_state
+            payload['params']['full_state'] = full_state.__str__().lower()
         if set_presence is not None:
-            payload['data']['set_presence'] = f'{set_presence}'
+            payload['params']['set_presence'] = f'{set_presence}'
         if timeout is not None:
-            payload['data']['timeout'] = timeout
+            payload['params']['timeout'] = timeout
         r = await self._raw_api.make_request(
             'GET', '_matrix/client/r0/sync', models.SyncResponse, **payload
         )

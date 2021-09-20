@@ -28,9 +28,6 @@ class StateEvent(RoomEvent):
     prev_content: Optional[Any]
 
 
-print(StateEvent.schema_json())
-
-
 class Event(BasicEvent):
     sender: str
 

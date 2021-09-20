@@ -26,6 +26,10 @@ class MatrixAPIError(Exception):
         raise cls(error_code, error, raw_data)
 
 
+class MissingToken(MatrixAPIError, error_code='M_MISSING_TOKEN'):
+    pass
+
+
 class Forbidden(MatrixAPIError, error_code='M_FORBIDDEN'):
     pass
 

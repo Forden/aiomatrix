@@ -9,7 +9,7 @@ from . import exceptions
 
 class RawAPI:
     def __init__(self, server_url: str):
-        self._session = aiohttp.ClientSession()
+        self._session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
         self._BASE_URL = server_url
         self._access_token = ''
 
@@ -27,11 +27,8 @@ class RawAPI:
             args['data'] = json.dumps(args['data'])
         if self._access_token == '':
             del args['headers']['Authorization']
-        print(kwargs)
         async with self._session.request(**args) as resp:
             res = await resp.json()
-            # print(args['url'], res)
-            # print(res)
             if not resp.ok:
                 if 'errcode' in res:
                     raise exceptions.MatrixAPIError.detect(res['errcode'], res['error'], res)
@@ -46,3 +43,7 @@ class RawAPI:
 
     def set_access_token(self, access_token: str):
         self._access_token = access_token
+
+    @property
+    def is_authorized(self) -> bool:
+        return self._access_token != ''
