@@ -35,12 +35,14 @@ class Executor:
             return
         self._on_shutdown.append(callback)
 
-    def start_polling(self, ignore_errors: bool = True, timeout: int = 10, sleep: float = 0.1):
+    def start_polling(
+            self, ignore_errors: bool = True, track_presence: bool = False, timeout: int = 10, sleep: float = 0.1,
+    ):
         loop: AbstractEventLoop = self.loop
 
         try:
             loop.run_until_complete(self._start_polling())
-            loop.create_task(self.client.run(ignore_errors, timeout, sleep))
+            loop.create_task(self.client.run(ignore_errors, timeout, sleep, track_presence))
             loop.run_forever()
         except (KeyboardInterrupt, SystemExit):
             # loop.stop()

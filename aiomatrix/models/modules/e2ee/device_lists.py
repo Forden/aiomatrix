@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Optional
 
 import pydantic
 
 
 class DeviceLists(pydantic.BaseModel):
-    changed: List[str]
-    left: List[str]
+    changed: Optional[List[str]]
+    left: Optional[List[str]]

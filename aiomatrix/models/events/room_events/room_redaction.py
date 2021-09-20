@@ -1,11 +1,11 @@
 import pydantic
 
-from ..basic import StateEvent
+from ..basic import RoomStateEvent
 
 
 class RoomRedactionContent(pydantic.BaseModel):
     reason: str
 
 
-class RoomRedaction(StateEvent):
+class RoomRedaction(RoomStateEvent):
     content: RoomRedactionContent

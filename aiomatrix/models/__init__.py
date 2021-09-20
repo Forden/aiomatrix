@@ -9,5 +9,5 @@ from .login_types import LoginTypes
 from .room_aliases import GetRoomAliasesResponse, ResolveRoomAliasResponse
 from .room_membership import UserJoinRoomResponse, UserJoinRoomThirdPartSigned, UserJoinedRoomsResponse
 from .server_capabilities import ServerCapabilitiesResponse
-from .syncing import SyncResponse
+from .syncing import RoomMembersResponse, RoomMessagesResponse, SyncResponse
 from .whoami import WhoAmI

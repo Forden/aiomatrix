@@ -13,7 +13,7 @@ class PresenceEnum(str, Enum):
 class PresenceEventContent(pydantic.BaseModel):
     avatar_url: Optional[str]
     displayname: Optional[str]
-    last_active_ago: int
+    last_active_ago: Optional[int]
     presence: PresenceEnum
     currently_active: Optional[bool]
     status_msg: Optional[str]
@@ -21,7 +21,7 @@ class PresenceEventContent(pydantic.BaseModel):
 
 class CurrentPresenceStatus(pydantic.BaseModel):
     presence: PresenceEnum
-    last_active_ago: int
+    last_active_ago: Optional[int]
     status_msg: Optional[str]
     currently_active: Optional[bool]
 

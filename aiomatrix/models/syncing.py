@@ -4,7 +4,7 @@ import pydantic
 from pydantic import Field
 
 from . import modules
-from .events import BasicEvent, RoomEvent, StateEvent, StrippedState
+from .events import BasicEvent, RoomEvent, RoomMember, RoomStateEvent, StrippedState
 
 
 class RoomSummary(pydantic.BaseModel):
@@ -25,7 +25,7 @@ class Timeline(pydantic.BaseModel):
 
 
 class State(pydantic.BaseModel):
-    events: List[StateEvent]
+    events: List[RoomStateEvent]
 
 
 class AccountData(pydantic.BaseModel):
@@ -77,3 +77,14 @@ class SyncResponse(pydantic.BaseModel):
     to_device: Optional[modules.send_to_device.ToDevice]
     device_lists: Optional[modules.e2ee.DeviceLists]
     device_one_time_keys_count: Optional[Dict[str, int]]
+
+
+class RoomMembersResponse(pydantic.BaseModel):
+    chunk: List[RoomMember]
+
+
+class RoomMessagesResponse(pydantic.BaseModel):
+    start: str
+    end: str
+    chunk: List[RoomEvent]
+    state: List[RoomStateEvent]

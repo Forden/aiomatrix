@@ -2,7 +2,7 @@ from enum import Enum
 
 import pydantic
 
-from ..basic import StateEvent
+from ..basic import RoomStateEvent
 
 
 class RoomJoinRuleEnum(str, Enum):
@@ -16,5 +16,5 @@ class RoomJoinRulesContent(pydantic.BaseModel):
     join_rule: RoomJoinRuleEnum
 
 
-class RoomJoinRules(StateEvent):
+class RoomJoinRules(RoomStateEvent):
     content: RoomJoinRulesContent

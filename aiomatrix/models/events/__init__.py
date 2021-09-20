@@ -1,5 +1,5 @@
 from .basic import (
     BasicEvent, BasicRoomMessageEventContent, Event, RoomEvent, RoomMessageEvent, RoomMessageEventMsgTypesEnum,
-    StateEvent, StrippedState
+    RoomStateEvent, StrippedState
 )
 from .room_events import *

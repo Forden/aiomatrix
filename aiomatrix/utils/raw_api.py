@@ -3,13 +3,14 @@ import urllib.parse
 from typing import Dict, Optional
 
 import aiohttp
+import pydantic
 
 from . import exceptions
 
 
 class RawAPI:
     def __init__(self, server_url: str):
-        self._session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
+        self._session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60))
         self._BASE_URL = server_url
         self._access_token = ''
 
@@ -29,6 +30,7 @@ class RawAPI:
             del args['headers']['Authorization']
         async with self._session.request(**args) as resp:
             res = await resp.json()
+            print(resp.url)
             if not resp.ok:
                 if 'errcode' in res:
                     raise exceptions.MatrixAPIError.detect(res['errcode'], res['error'], res)
@@ -37,7 +39,15 @@ class RawAPI:
     async def make_request(self, http_method: str, method: str, model_type=None, **kwargs):
         r = await self.__make_request(http_method, method, **kwargs)
         if isinstance(r, dict):
-            return model_type(**r)
+            try:
+                return model_type(**r)
+            except pydantic.ValidationError as e:
+                print(f'validation error {e=} for json {r=}')
+        elif isinstance(r, list) and isinstance(r[0], dict):
+            try:
+                return [model_type(**i) for i in r]
+            except pydantic.ValidationError as e:
+                print(f'validation error {e=} for json {r=}')
         else:
             return r
 

@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import pydantic
 
-from ..basic import StateEvent
+from ..basic import RoomStateEvent
 
 
 class RoomCanonicalAliasContent(pydantic.BaseModel):
@@ -10,5 +10,5 @@ class RoomCanonicalAliasContent(pydantic.BaseModel):
     alt_aliases: Optional[List[str]]
 
 
-class RoomCanonicalAlias(StateEvent):
+class RoomCanonicalAlias(RoomStateEvent):
     content: RoomCanonicalAliasContent

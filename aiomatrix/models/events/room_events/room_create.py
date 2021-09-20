@@ -3,7 +3,7 @@ from typing import Optional
 import pydantic
 from pydantic import Field
 
-from ..basic import StateEvent
+from ..basic import RoomStateEvent
 
 
 class PreviousRoom(pydantic.BaseModel):
@@ -18,5 +18,5 @@ class RoomCreateContent(pydantic.BaseModel):
     predecessor: Optional[PreviousRoom]
 
 
-class RoomCreate(StateEvent):
+class RoomCreate(RoomStateEvent):
     content: RoomCreateContent

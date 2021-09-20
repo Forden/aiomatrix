@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -5,7 +6,7 @@ import pydantic
 
 
 class BasicEvent(pydantic.BaseModel):
-    content: Any
+    content: dict
     type: str
 
 
@@ -18,12 +19,12 @@ class UnsignedData(pydantic.BaseModel):
 class RoomEvent(BasicEvent):
     event_id: str
     sender: str
-    origin_server_ts: int
+    origin_server_ts: datetime.datetime
     unsigned: Optional[UnsignedData]
-    room_id: Optional[str]
+    room_id: Optional[str]  # None only in /sync
 
 
-class StateEvent(RoomEvent):
+class RoomStateEvent(RoomEvent):
     state_key: str
     prev_content: Optional[Any]
 

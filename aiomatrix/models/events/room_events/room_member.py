@@ -3,7 +3,7 @@ from typing import Optional
 
 import pydantic
 
-from ..basic import StateEvent
+from ..basic import RoomStateEvent
 
 
 class RoomMemberMembershipEnum(str, Enum):
@@ -32,5 +32,5 @@ class RoomMemberContent(pydantic.BaseModel):
     unsigned: RoomMemberUnsignedData
 
 
-class RoomMember(StateEvent):
+class RoomMember(RoomStateEvent):
     content: RoomMemberContent
