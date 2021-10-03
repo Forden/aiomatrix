@@ -1,8 +1,9 @@
 import asyncio
 import time
+import typing
 from typing import Optional, Tuple
 
-from . import apis, models
+from . import apis, handlers, models
 from .utils import exceptions, raw_api, storage
 
 
@@ -20,6 +21,31 @@ class Aiomatrix:
         self.listing_room_api = apis.ListingRoomsAPI(self._raw_api)
         self.sync_api = apis.SyncingAPI(self._raw_api)
         self.presence_api = apis.modules.PresenceAPI(self._raw_api)
+
+        self._handlers: typing.List[handlers.Handler] = []
+
+    def register_handler(
+            self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.BaseFilter]] = None
+    ):
+        self._handlers.append(handlers.Handler(callback=callback, filters=filters))
+
+    @staticmethod
+    def parse_event(event: models.events.RoomEvent) -> models.events.RoomEvent:
+        if event.type == 'm.room.message':
+            message_event_content = models.events.BasicRoomMessageEventContent(**event.content)
+            msgtypes = {
+                models.events.RoomMessageEventMsgTypesEnum.audio:    models.modules.instant_messaging.Audio,
+                models.events.RoomMessageEventMsgTypesEnum.emote:    models.modules.instant_messaging.Emote,
+                models.events.RoomMessageEventMsgTypesEnum.file:     models.modules.instant_messaging.File,
+                models.events.RoomMessageEventMsgTypesEnum.image:    models.modules.instant_messaging.Image,
+                models.events.RoomMessageEventMsgTypesEnum.location: models.modules.instant_messaging.Location,
+                models.events.RoomMessageEventMsgTypesEnum.notice:   models.modules.instant_messaging.Notice,
+                models.events.RoomMessageEventMsgTypesEnum.text:     models.modules.instant_messaging.Text,
+                models.events.RoomMessageEventMsgTypesEnum.video:    models.modules.instant_messaging.Video,
+            }
+            if message_event_content.msgtype in msgtypes:
+                event.content = msgtypes[message_event_content.msgtype](**event.content)
+        return event
 
     async def login(self):
         if not self._raw_api.is_authorized:
@@ -51,6 +77,17 @@ class Aiomatrix:
                                 await self.storage.state_repo.insert_new_events_batch(
                                     list(filter(lambda x: not events_in_db[x.event_id], part))
                                 )
+                    for room_id in state.rooms.join:
+                        room_data = state.rooms.join[room_id]
+                        parsed_events = []
+                        for event in room_data.timeline.events:
+                            event.room_id = room_id
+                            parsed_events.append(self.parse_event(event))
+                        for event in parsed_events:
+                            for handler in self._handlers:
+                                if await handler.check(event):
+                                    await handler.callback(event)
+                                    break
             if process_invited_rooms:
                 if state.rooms.invite:
                     print(f'{state.rooms.invite=}')

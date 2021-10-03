@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import pydantic
 
@@ -39,7 +39,8 @@ class StrippedState(Event):
 
 class RoomMessageEventMsgTypesEnum(str, Enum):
     text = 'm.text'
-    emote = 'm.emote'
+    emote = 'm.emote'  # looks unused, replaced with m.reaction
+    reaction = 'm.reaction'
     notice = 'm.notice'
     image = 'm.image'
     file = 'm.file'
@@ -50,7 +51,7 @@ class RoomMessageEventMsgTypesEnum(str, Enum):
 
 class BasicRoomMessageEventContent(pydantic.BaseModel):
     body: str
-    msgtype: str
+    msgtype: Union[RoomMessageEventMsgTypesEnum, str]
 
 
 class RoomMessageEvent(RoomEvent):
