@@ -1,8 +1,7 @@
 from typing import List, Optional
 
 import aiomatrix.models.modules.presence.presence
-from . import models
-from .base import BasePresenceStorage
+from . import BasePresenceStorage, models
 
 
 class PresenceRepo:

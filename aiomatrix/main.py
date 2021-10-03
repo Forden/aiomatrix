@@ -76,12 +76,12 @@ class Aiomatrix:
             self, ignore_errors: bool = True, timeout: int = 10, sleep: float = 0.1, track_presence: bool = False
     ):
         await self.login()
-        state = None
         while True:
+            next_batch = await self.storage.internal_repo.get_last_sync_token()
             try:
-                state = await self.sync_api.sync(  # move to function
+                state = await self.sync_api.sync(
                     full_state=False,
-                    since=state.next_batch if state is not None else None,
+                    since=next_batch,
                     timeout=timeout * 1000
                 )
             except Exception as e:
@@ -92,6 +92,7 @@ class Aiomatrix:
                 t = time.time()
                 await self.process_sync(state, process_joined_rooms=True, process_presence=track_presence)
                 print(f'proceeded in {time.time() - t}')
+                await self.storage.internal_repo.set_last_sync_token(state.next_batch)
             await asyncio.sleep(sleep)
 
     async def login_by_password(self, login: str, password: str, device_id: Optional[str] = None):
