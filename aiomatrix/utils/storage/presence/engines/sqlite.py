@@ -2,11 +2,11 @@ import datetime
 from typing import List, Optional
 
 import aiomatrix
-from .storage import SqliteConnection
-from ... import models
+from .. import models
+from ...base_engines import SqliteConnection
 
 
-class PresenceStorage(SqliteConnection):
+class SqlitePresenceStorageEngine(SqliteConnection):
     async def get_user_data(self, user_id: str) -> Optional[models.PresenceInDB]:
         sql = 'SELECT * FROM presence WHERE user_id = ?'
         params = (user_id,)

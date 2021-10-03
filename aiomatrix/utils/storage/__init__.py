@@ -1,2 +1,3 @@
-from .presence import PresenceStorage
-from .state import StateStorage
+from .presence import BasePresenceStorage, SqlitePresenceStorage
+from .state import BaseStateStorage, SqliteStateStorage
+from .storage import StorageRepo

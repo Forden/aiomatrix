@@ -57,7 +57,6 @@ class SqliteConnection:
     def _convert_to_model(data: Optional[sqlite3.Row], model: Type[T]) -> Optional[T]:
         if data is not None:
             dict_data = dict(data)
-            # print(dict_data)  # TODO: remove after debugging
             for k, v in dict_data.items():
                 if isinstance(v, str):
                     try:

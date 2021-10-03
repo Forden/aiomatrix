@@ -1,11 +1,11 @@
 from typing import List, Optional
 
 import aiomatrix
-from .storage import SqliteConnection
-from ... import models
+from .. import models
+from ...base_engines import SqliteConnection
 
 
-class StateStorage(SqliteConnection):
+class SqliteStateStorageEngine(SqliteConnection):
     async def get_event(self, event_id: str) -> Optional[models.EventInDB]:
         sql = 'SELECT * FROM events WHERE event_id = ?'
         params = (event_id,)
