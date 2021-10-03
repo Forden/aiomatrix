@@ -39,7 +39,7 @@ class SqlitePresenceStorageEngine(SqliteConnection):
         )
         self._make_request(sql, params)
 
-    async def get_unupdated_users(self, timeout: int = 60) -> List[models.PresenceInDB]:
+    async def get_unupdated_users(self, timeout: int) -> List[models.PresenceInDB]:
         sql = 'SELECT * FROM presence WHERE last_active + ? < ?'
         params = (timeout, datetime.datetime.utcnow().timestamp() + timeout)
         r = self._make_request(sql, params, fetch=True, mult=True, model_type=models.PresenceInDB)

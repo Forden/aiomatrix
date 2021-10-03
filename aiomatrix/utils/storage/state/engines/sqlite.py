@@ -6,17 +6,17 @@ from ...base_engines import SqliteConnection
 
 
 class SqliteStateStorageEngine(SqliteConnection):
-    async def get_event(self, event_id: str) -> Optional[models.EventInDB]:
+    async def get_event(self, event_id: str) -> Optional[models.StateEventInDB]:
         sql = 'SELECT * FROM events WHERE event_id = ?'
         params = (event_id,)
-        r = self._make_request(sql, params, fetch=True, model_type=models.EventInDB)
+        r = self._make_request(sql, params, fetch=True, model_type=models.StateEventInDB)
         return r
 
-    async def get_events_batch(self, events_ids: List[str]) -> List[models.EventInDB]:
+    async def get_events_batch(self, events_ids: List[str]) -> List[models.StateEventInDB]:
         # noinspection SqlResolve
         sql = f'SELECT * FROM events WHERE event_id IN ({", ".join(["?" for _ in range(len(events_ids))])})'
         params = tuple(events_ids)
-        r = self._make_request(sql, params, fetch=True, mult=True, model_type=models.EventInDB)
+        r = self._make_request(sql, params, fetch=True, mult=True, model_type=models.StateEventInDB)
         return r
 
     async def add_new_state_event(self, event: aiomatrix.models.events.RoomStateEvent):
@@ -38,8 +38,8 @@ class SqliteStateStorageEngine(SqliteConnection):
         ]
         self._make_request(sql, params)
 
-    async def get_room_events(self, room_id: str) -> List[models.EventInDB]:
+    async def get_room_events(self, room_id: str) -> List[models.StateEventInDB]:
         sql = 'SELECT * FROM events WHERE room_id = ? ORDER BY ts '
         params = (room_id,)
-        r = self._make_request(sql, params, fetch=True, mult=True, model_type=models.EventInDB)
+        r = self._make_request(sql, params, fetch=True, mult=True, model_type=models.StateEventInDB)
         return r

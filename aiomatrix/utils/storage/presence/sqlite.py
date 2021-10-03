@@ -13,7 +13,7 @@ class SqlitePresenceStorage(BasePresenceStorage):
         db_res = await self.db_mngr.get_user_data(user_id)
         return db_res
 
-    async def is_new_user(self, user_id: str):
+    async def is_new_user(self, user_id: str) -> bool:
         event_in_db = await self.get_user_data(user_id)
         return event_in_db is None
 
@@ -28,6 +28,6 @@ class SqlitePresenceStorage(BasePresenceStorage):
     ):
         await self.db_mngr.update_user_presence(user_id, event.presence, event.last_active_ago, event.status_msg)
 
-    async def get_unupdated_users(self, timeout: int = 60) -> List[models.PresenceInDB]:
+    async def get_unupdated_users(self, timeout: int) -> List[models.PresenceInDB]:
         db_res = await self.db_mngr.get_unupdated_users(timeout)
         return db_res

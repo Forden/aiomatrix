@@ -43,13 +43,13 @@ class Aiomatrix:
                             ]
                             for i, part in enumerate(parts):
                                 print(f'processing {len(part)} events from {i}/{len(parts)} part')
-                                events_in_db = await self.storage.state_storage.get_event_data_batch(
-                                    [i.event_id for i in part], only_ids=True
+                                events_in_db = await self.storage.state_repo.are_new_events(
+                                    list(map(lambda x: x.event_id, part))
                                 )
                                 for event in part:
                                     event.room_id = room_id
-                                await self.storage.state_storage.insert_new_events_batch(
-                                    list(filter(lambda x: x.event_id not in events_in_db, part))
+                                await self.storage.state_repo.insert_new_events_batch(
+                                    list(filter(lambda x: not events_in_db[x.event_id], part))
                                 )
             if process_invited_rooms:
                 if state.rooms.invite:
@@ -61,7 +61,7 @@ class Aiomatrix:
             if state.presence:
                 for event in state.presence.events:
                     await self.storage.presence_storage.add_new_presence_update(event)
-            unupdated_users = await self.storage.presence_storage.get_unupdated_users(600)
+            unupdated_users = await self.storage.presence_storage.get_outdated_users_data(600)
             for user in unupdated_users:
                 try:
                     user_presence = await self.presence_api.get_user_presence(user.user_id)

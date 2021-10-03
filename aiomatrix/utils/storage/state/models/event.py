@@ -6,7 +6,7 @@ import pydantic
 from aiomatrix import models
 
 
-class EventInDB(pydantic.BaseModel):
+class StateEventInDB(pydantic.BaseModel):
     event_id: str
     room_id: Optional[str]
     sender: str
