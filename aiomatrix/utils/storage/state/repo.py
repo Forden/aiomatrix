@@ -16,7 +16,7 @@ class StateRepo:
 
     async def are_new_events(self, events_ids: List[str]) -> Dict[str, bool]:
         events_data = await self.storage.get_event_data_batch(events_ids)
-        found_ids = set(map(lambda x: x.event_id, events_data))
+        found_ids = set(events_data.keys())
         res = {i: i in found_ids for i in events_ids}
         return res
 
