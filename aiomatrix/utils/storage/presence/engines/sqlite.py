@@ -7,14 +7,14 @@ from ...base_engines import SqliteConnection
 
 
 class SqlitePresenceStorageEngine(SqliteConnection):
-    async def get_user_data(self, user_id: str) -> Optional[models.PresenceInDB]:
+    async def get_user_data(self, user_id: aiomatrix.types.primitives.UserID) -> Optional[models.PresenceInDB]:
         sql = 'SELECT * FROM presence WHERE user_id = ?'
         params = (user_id,)
         r = self._make_request(sql, params, fetch=True, model_type=models.PresenceInDB)
         return r
 
     async def add_new_presence(
-            self, user_id: str, presence: aiomatrix.models.modules.presence.PresenceEnum,
+            self, user_id: aiomatrix.types.primitives.UserID, presence: aiomatrix.types.misc.PresenceEnum,
             last_active_ago: Optional[int] = None, status_msg: Optional[str] = None
     ):
         now = datetime.datetime.utcnow()
@@ -27,7 +27,7 @@ class SqlitePresenceStorageEngine(SqliteConnection):
         self._make_request(sql, params)
 
     async def update_user_presence(
-            self, user_id: str, presence: aiomatrix.models.modules.presence.PresenceEnum,
+            self, user_id: aiomatrix.types.primitives.UserID, presence: aiomatrix.types.misc.PresenceEnum,
             last_active_ago: Optional[int] = None, status_msg: Optional[str] = None
     ):
         now = datetime.datetime.utcnow()

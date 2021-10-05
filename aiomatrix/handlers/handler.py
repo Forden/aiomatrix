@@ -2,7 +2,7 @@ import typing
 
 import pydantic
 
-import aiomatrix.models.events
+from aiomatrix import types
 from . import BaseFilter
 
 
@@ -13,7 +13,7 @@ class Handler(pydantic.BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    async def check(self, event: aiomatrix.models.events.RoomEvent) -> bool:
+    async def check(self, event: types.events.RoomEvent) -> bool:
         for event_filter in self.filters:
             check_result = await event_filter.check(event)
             if not check_result:

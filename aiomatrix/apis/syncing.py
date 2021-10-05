@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from .. import models
+from .. import types
 from ..utils import raw_api
 
 
@@ -11,9 +11,9 @@ class SyncingAPI:
 
     async def sync(
             self, filter_id: Optional[str] = None, since: Optional[str] = None, full_state: bool = False,
-            set_presence: models.modules.presence.PresenceEnum = models.modules.presence.PresenceEnum.online,
+            set_presence: types.misc.PresenceEnum = types.misc.PresenceEnum.online,
             timeout: int = 0
-    ) -> models.SyncResponse:
+    ) -> types.responses.SyncResponse:
         payload = {'params': {}}
         if filter_id is not None:
             payload['params']['filter'] = filter_id
@@ -26,27 +26,29 @@ class SyncingAPI:
         if timeout is not None:
             payload['params']['timeout'] = timeout
         r = await self._raw_api.make_request(
-            'GET', '_matrix/client/r0/sync', models.SyncResponse, **payload
+            'GET', '_matrix/client/r0/sync', model_type=types.responses.SyncResponse, **payload
         )
         return r
 
-    async def get_room_event(self, room_id: str, event_id: str) -> models.events.RoomEvent:
+    async def get_room_event(
+            self, room_id: types.primitives.RoomID, event_id: types.primitives.EventID
+    ) -> types.events.RoomEvent:
         r = await self._raw_api.make_request(
-            'GET', f'_matrix/client/r0/rooms/{room_id}/event/{event_id}', models.events.RoomEvent
+            'GET', f'_matrix/client/r0/rooms/{room_id}/event/{event_id}', model_type=types.events.RoomEvent
         )
         return r
 
-    async def get_room_state(self, room_id: str) -> List[models.events.RoomEvent]:
+    async def get_room_state(self, room_id: types.primitives.RoomID) -> List[types.events.RoomEvent]:
         r = await self._raw_api.make_request(
-            'GET', f'_matrix/client/r0/rooms/{room_id}/state', models.events.RoomEvent
+            'GET', f'_matrix/client/r0/rooms/{room_id}/state', model_type=types.events.RoomEvent
         )
         return r
 
     async def get_room_members(
-            self, room_id: str, at: Optional[str] = None,
-            membership: Optional[models.events.RoomMemberMembershipEnum] = None,
-            not_membership: Optional[models.events.RoomMemberMembershipEnum] = None
-    ) -> models.RoomMembersResponse:
+            self, room_id: types.primitives.RoomID, at: Optional[str] = None,
+            membership: Optional[types.events.RoomMemberMembershipEnum] = None,
+            not_membership: Optional[types.events.RoomMemberMembershipEnum] = None
+    ) -> types.responses.RoomMembersResponse:
         payload = {'params': {}}
         if at is not None:
             payload['params']['at'] = at
@@ -55,14 +57,15 @@ class SyncingAPI:
         if not_membership is not None:
             payload['params']['not_membership'] = f'{not_membership}'
         r = await self._raw_api.make_request(
-            'GET', f'_matrix/client/r0/rooms/{room_id}/members', models.RoomMembersResponse, **payload
+            'GET', f'_matrix/client/r0/rooms/{room_id}/members', model_type=types.responses.RoomMembersResponse,
+            **payload
         )
         return r
 
     async def get_room_messages(
-            self, room_id: str, from_token: str, to: Optional[str] = None, direction: str = 'f', limit: int = 10,
-            filter_id: Optional[str] = None
-    ) -> models.RoomMessagesResponse:
+            self, room_id: types.primitives.RoomID, from_token: str, to: Optional[str] = None, direction: str = 'f',
+            limit: int = 10, filter_id: Optional[str] = None
+    ) -> types.responses.RoomMessagesResponse:
         payload = {'params': {'from': from_token}}
         if to is not None:
             payload['params']['to'] = to
@@ -73,6 +76,7 @@ class SyncingAPI:
         if filter_id is not None:
             payload['params']['filter'] = filter_id
         r = await self._raw_api.make_request(
-            'GET', f'_matrix/client/r0/rooms/{room_id}/messages', models.RoomMessagesResponse, **payload
+            'GET', f'_matrix/client/r0/rooms/{room_id}/messages', model_type=types.responses.RoomMessagesResponse,
+            **payload
         )
         return r

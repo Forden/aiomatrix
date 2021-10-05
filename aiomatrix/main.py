@@ -3,8 +3,8 @@ import time
 import typing
 from typing import Optional, Tuple
 
-from . import apis, handlers, models
-from .utils import exceptions, raw_api, storage
+from . import apis, exceptions, handlers, types
+from .utils import raw_api, storage
 
 
 class Aiomatrix:
@@ -23,28 +23,44 @@ class Aiomatrix:
         self.presence_api = apis.modules.PresenceAPI(self._raw_api)
 
         self._handlers: typing.List[handlers.Handler] = []
+        self._redaction_hanlders: typing.List[handlers.Handler] = []
 
     def register_handler(
             self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.BaseFilter]] = None
     ):
         self._handlers.append(handlers.Handler(callback=callback, filters=filters))
 
+    def register_redaction_handler(
+            self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.BaseFilter]] = None
+    ):
+        self._redaction_hanlders.append(handlers.Handler(callback=callback, filters=filters))
+
     @staticmethod
-    def parse_event(event: models.events.RoomEvent) -> models.events.RoomEvent:
-        if event.type == 'm.room.message':
-            message_event_content = models.events.BasicRoomMessageEventContent(**event.content)
-            msgtypes = {
-                models.events.RoomMessageEventMsgTypesEnum.audio:    models.modules.instant_messaging.Audio,
-                models.events.RoomMessageEventMsgTypesEnum.emote:    models.modules.instant_messaging.Emote,
-                models.events.RoomMessageEventMsgTypesEnum.file:     models.modules.instant_messaging.File,
-                models.events.RoomMessageEventMsgTypesEnum.image:    models.modules.instant_messaging.Image,
-                models.events.RoomMessageEventMsgTypesEnum.location: models.modules.instant_messaging.Location,
-                models.events.RoomMessageEventMsgTypesEnum.notice:   models.modules.instant_messaging.Notice,
-                models.events.RoomMessageEventMsgTypesEnum.text:     models.modules.instant_messaging.Text,
-                models.events.RoomMessageEventMsgTypesEnum.video:    models.modules.instant_messaging.Video,
-            }
-            if message_event_content.msgtype in msgtypes:
-                event.content = msgtypes[message_event_content.msgtype](**event.content)
+    def parse_event(
+            event: types.events.RoomEvent
+    ) -> typing.Union[types.events.RoomEvent, types.events.RoomMessageEvent, types.events.RoomRedactionEvent]:
+        if event.unsigned.redacted_because is not None:
+            event = types.events.RoomRedactionEvent(**event.dict())
+            event.unsigned.redacted_because = types.events.RoomRedactionEvent(**event.unsigned.redacted_because)
+            return event
+        if event.type == types.misc.RoomEventTypesEnum.room_message:
+            if event.content:
+                message_event_content = types.events.BasicRoomMessageEventContent(**event.content)
+                msgtypes = {
+                    types.misc.RoomMessageEventMsgTypesEnum.audio:    types.modules.instant_messaging.AudioContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.emote:    types.modules.instant_messaging.EmoteContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.file:     types.modules.instant_messaging.FileContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.image:    types.modules.instant_messaging.ImageContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.location: types.modules.instant_messaging.LocationContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.notice:   types.modules.instant_messaging.NoticeContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.text:     types.modules.instant_messaging.TextContent,
+                    types.misc.RoomMessageEventMsgTypesEnum.video:    types.modules.instant_messaging.VideoContent,
+                }
+                if message_event_content.msgtype in msgtypes:
+                    event.content = msgtypes[message_event_content.msgtype](**event.content)
+        elif event.type == types.misc.RoomEventTypesEnum.reaction:
+            if event.content:
+                event.content = types.events.relationships.ReactionRelationship(**event.content)
         return event
 
     async def login(self):
@@ -52,8 +68,8 @@ class Aiomatrix:
             await self._auth_cb(**self._auth_details)
 
     async def process_sync(
-            self, state: models.SyncResponse, process_joined_rooms: bool = True, process_invited_rooms: bool = True,
-            process_left_rooms: bool = True, process_presence: bool = False
+            self, state: types.responses.SyncResponse, process_joined_rooms: bool = True,
+            process_invited_rooms: bool = True, process_left_rooms: bool = True, process_presence: bool = False
     ):
         if state.rooms:
             if process_joined_rooms:
@@ -68,7 +84,6 @@ class Aiomatrix:
                                 )
                             ]
                             for i, part in enumerate(parts):
-                                print(f'processing {len(part)} events from {i}/{len(parts)} part')
                                 events_in_db = await self.storage.state_repo.are_new_events(
                                     list(map(lambda x: x.event_id, part))
                                 )
@@ -84,10 +99,16 @@ class Aiomatrix:
                             event.room_id = room_id
                             parsed_events.append(self.parse_event(event))
                         for event in parsed_events:
-                            for handler in self._handlers:
-                                if await handler.check(event):
-                                    await handler.callback(event)
-                                    break
+                            if event.type == types.misc.RoomEventTypesEnum.redaction:
+                                for handler in self._redaction_hanlders:
+                                    if await handler.check(event):
+                                        await handler.callback(event)
+                                        break
+                            else:
+                                for handler in self._handlers:
+                                    if await handler.check(event):
+                                        await handler.callback(event)
+                                        break
             if process_invited_rooms:
                 if state.rooms.invite:
                     print(f'{state.rooms.invite=}')

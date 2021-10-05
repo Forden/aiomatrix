@@ -9,22 +9,23 @@ class SqlitePresenceStorage(BasePresenceStorage):
     def __init__(self, db_path: Union[pathlib.Path, str]):
         self.db_mngr = engines.SqlitePresenceStorageEngine(db_path)
 
-    async def get_user_data(self, user_id: str) -> Optional[models.PresenceInDB]:
+    async def get_user_data(self, user_id: aiomatrix.types.primitives.UserID) -> Optional[models.PresenceInDB]:
         db_res = await self.db_mngr.get_user_data(user_id)
         return db_res
 
-    async def is_new_user(self, user_id: str) -> bool:
+    async def is_new_user(self, user_id: aiomatrix.types.primitives.UserID) -> bool:
         event_in_db = await self.get_user_data(user_id)
         return event_in_db is None
 
-    async def add_new_presence_update(self, event: aiomatrix.models.modules.presence.PresenceEvent):
+    async def add_new_presence_update(self, event: aiomatrix.types.modules.presence.PresenceEvent):
         if await self.is_new_user(event.sender):
             await self.db_mngr.add_new_presence(
                 event.sender, event.content.presence, event.content.last_active_ago, event.content.status_msg
             )
 
     async def update_user_presence(
-            self, user_id: str, event: aiomatrix.models.modules.presence.CurrentPresenceStatus
+            self, user_id: aiomatrix.types.primitives.UserID,
+            event: aiomatrix.types.modules.presence.CurrentPresenceStatus
     ):
         await self.db_mngr.update_user_presence(user_id, event.presence, event.last_active_ago, event.status_msg)
 

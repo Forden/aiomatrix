@@ -3,12 +3,12 @@ from typing import Optional
 
 import pydantic
 
-from aiomatrix import models
+from aiomatrix import types
 
 
 class StateEventInDB(pydantic.BaseModel):
     event_id: str
-    room_id: Optional[str]
-    sender: str
+    room_id: Optional[types.primitives.RoomID]
+    sender: types.primitives.UserID
     ts: datetime.datetime
-    data: models.events.RoomStateEvent
+    data: types.events.RoomStateEvent

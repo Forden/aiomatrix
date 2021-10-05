@@ -1,6 +1,6 @@
 from typing import Optional
 
-from aiomatrix import models
+from aiomatrix import types
 from aiomatrix.utils import quotes, raw_api
 
 
@@ -9,7 +9,8 @@ class PresenceAPI:
         self._raw_api = raw_api_client
 
     async def set_user_state(
-            self, user_id: str, new_presence: models.modules.presence.PresenceEnum, status_msg: Optional[str] = None
+            self, user_id: types.primitives.UserID, new_presence: types.misc.PresenceEnum,
+            status_msg: Optional[str] = None
     ):
         payload = {
             'data': {
@@ -20,13 +21,13 @@ class PresenceAPI:
             payload['data']['status_msg'] = status_msg
         await self._raw_api.make_request(
             'PUT', f'_matrix/client/r0/presence/{quotes.quote_user_id(user_id)}/status',
-            models.modules.presence.CurrentPresenceStatus
+            model_type=types.modules.presence.CurrentPresenceStatus
         )
 
-    async def get_user_presence(self, user_id: str) -> models.modules.presence.CurrentPresenceStatus:
+    async def get_user_presence(self, user_id: types.primitives.UserID) -> types.modules.presence.CurrentPresenceStatus:
         r = await self._raw_api.make_request(
             'GET',
             f'_matrix/client/r0/presence/{quotes.quote_user_id(user_id)}/status',
-            models.modules.presence.CurrentPresenceStatus
+            model_type=types.modules.presence.CurrentPresenceStatus
         )
         return r

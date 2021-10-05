@@ -1,6 +1,6 @@
-import aiomatrix.models.events
+from aiomatrix import types
 
 
 class BaseFilter:
-    def check(self, event: aiomatrix.models.events.RoomEvent):
+    def check(self, event: types.events.RoomEvent):
         raise NotImplementedError

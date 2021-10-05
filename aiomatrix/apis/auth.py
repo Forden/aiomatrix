@@ -1,6 +1,6 @@
 from typing import Optional
 
-from .. import models
+from .. import types
 from ..utils import raw_api
 
 
@@ -8,11 +8,15 @@ class AuthAPI:
     def __init__(self, raw_api_client: raw_api.RawAPI):
         self._raw_api = raw_api_client
 
-    async def get_login_types(self) -> models.LoginTypes:
-        r = await self._raw_api.make_request('GET', '_matrix/client/r0/login', models.LoginTypes)
+    async def get_login_types(self) -> types.responses.SupportedLoginTypes:
+        r = await self._raw_api.make_request(
+            'GET', '_matrix/client/r0/login', model_type=types.responses.SupportedLoginTypes
+        )
         return r
 
-    async def password_login(self, login: str, password: str, device_id: Optional[str] = None) -> models.LoginResponse:
+    async def password_login(
+            self, login: str, password: str, device_id: Optional[str] = None
+    ) -> types.responses.LoginResponse:
         payload = {
             'data': {
                 'type':                        'm.login.password',
@@ -26,7 +30,9 @@ class AuthAPI:
         }
         if device_id is not None:
             payload['data']['device_id'] = device_id
-        r = await self._raw_api.make_request('POST', '_matrix/client/r0/login', models.LoginResponse, **payload)
+        r = await self._raw_api.make_request(
+            'POST', '_matrix/client/r0/login', model_type=types.responses.LoginResponse, **payload
+        )
         return r
 
     def set_access_token(self, access_token: str):
@@ -38,6 +44,8 @@ class AuthAPI:
     async def logout_all(self):
         await self._raw_api.make_request('POST', '_matrix/client/r0/logout/all')
 
-    async def whoami(self) -> models.WhoAmI:
-        r = await self._raw_api.make_request('GET', '_matrix/client/r0/account/whoami', models.WhoAmI)
+    async def whoami(self) -> types.responses.WhoAmIResponse:
+        r = await self._raw_api.make_request(
+            'GET', '_matrix/client/r0/account/whoami', model_type=types.responses.WhoAmIResponse
+        )
         return r
