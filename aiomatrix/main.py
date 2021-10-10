@@ -74,7 +74,6 @@ class AiomatrixClient:
             login_result = await self._auth_cb(**self._auth_details)
             if login_result:
                 self.me = await self.auth_api.whoami()
-                print(self.me)
 
     async def login_by_password(self, login: str, password: str, device_id: Optional[str] = None) -> bool:
         supported_login_types = await self.auth_api.get_login_types()
@@ -163,7 +162,6 @@ class AiomatrixDispatcher:
                 for room_id in state.rooms.join:
                     room_data = state.rooms.join[room_id]
                     parsed_events = []
-                    print(room_data.timeline.limited)
                     for event in room_data.timeline.events:
                         event.room_id = room_id
                         parsed_events.append(parse_event(event))
