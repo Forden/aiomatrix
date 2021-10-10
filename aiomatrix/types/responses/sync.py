@@ -4,7 +4,7 @@ import pydantic
 from pydantic import Field
 
 from .. import modules
-from ..events import BasicEvent, RoomEvent, RoomStateEvent, StrippedState
+from ..events import BasicEvent, RoomEvent, RoomStateEvent, StrippedStateEvent
 from ..primitives import RoomID
 
 
@@ -51,7 +51,7 @@ class JoinedRooms(pydantic.BaseModel):
 
 
 class InviteState(pydantic.BaseModel):
-    events: List[StrippedState]
+    events: List[StrippedStateEvent]
 
 
 class InvitedRooms(pydantic.BaseModel):

@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import pydantic
 from pydantic import Field
@@ -8,12 +8,18 @@ from .. import misc, primitives
 
 
 class EventObject(pydantic.BaseModel):
+    raw: Optional[dict]
+
     class Config:
         json_encoders = {datetime.datetime: lambda dt: int(dt.timestamp())}
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.raw = data
+
 
 class BasicEvent(EventObject):
-    content: dict
+    content: primitives.EventContent
     type: str
 
 
@@ -34,28 +40,28 @@ class RoomEvent(BasicEvent):
 
 class RoomStateEvent(RoomEvent):
     state_key: str
-    prev_content: Optional[Any]
+    prev_content: Optional[primitives.EventContent]
 
 
 class Event(BasicEvent):
     sender: primitives.UserID
 
 
-class StrippedState(Event):
+class StrippedStateEvent(Event):
     state_key: str
 
 
-class BasicRoomMessageEventContent(pydantic.BaseModel):
+class BasicRoomMessageEventContent(EventObject):
     body: str
     msgtype: Union[misc.RoomMessageEventMsgTypesEnum, str]
 
 
-class BasicRelationshipData(pydantic.BaseModel):
+class BasicRelationshipData(EventObject):
     rel_type: str  # add enum for realtionship types
     event_id: primitives.EventID
 
 
-class BasicRelationEventContent(pydantic.BaseModel):
+class BasicRelationEventContent(EventObject):
     relationship: BasicRelationshipData = pydantic.Field(..., alias='m.relates_to')
 
 

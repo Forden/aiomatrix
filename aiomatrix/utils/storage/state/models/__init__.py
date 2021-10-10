@@ -1,1 +1,1 @@
-from .event import StateEventInDB
+from .event import SeenEvent, EventInDB

@@ -1,1 +1,1 @@
-from .reaction import ReactionRelationship
+from .reaction import ReactionRelationshipContent

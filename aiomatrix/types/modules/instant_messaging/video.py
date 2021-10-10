@@ -6,7 +6,6 @@ from .basic_file_info import BasicFileInfo
 from .image import BasicImageInfo
 from ..e2ee import EncryptedFile
 from ...events.base import BasicRoomMessageEventContent
-from ...misc import RoomMessageEventMsgTypesEnum
 
 
 class VideoInfo(BasicFileInfo, pydantic.BaseModel):
@@ -19,7 +18,6 @@ class VideoInfo(BasicFileInfo, pydantic.BaseModel):
 
 
 class VideoContent(BasicRoomMessageEventContent):
-    msgtype: RoomMessageEventMsgTypesEnum = RoomMessageEventMsgTypesEnum.video
     info: Optional[VideoInfo]
     url: Optional[str]
     file: Optional[EncryptedFile]

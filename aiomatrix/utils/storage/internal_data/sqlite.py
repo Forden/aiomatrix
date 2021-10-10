@@ -8,12 +8,12 @@ class SqliteInternalDataStorage(BaseInternalDataStorage):
     def __init__(self, db_path: Union[pathlib.Path, str]):
         self.db_mngr = engines.SqliteInternalDataStorageEngine(db_path)
 
-    async def get_last_sync_token(self) -> Optional[models.InternalDataPair]:
-        db_res = await self.db_mngr.get_data_by_key('sync_token')
+    async def get_last_sync_token(self, account_id: str) -> Optional[models.InternalDataPair]:
+        db_res = await self.db_mngr.get_data_by_key(account_id, 'sync_token')
         return db_res
 
-    async def set_last_sync_token(self, token: str):
-        if await self.get_last_sync_token() is not None:
-            await self.db_mngr.set_data_by_key('sync_token', token)
+    async def set_last_sync_token(self, account_id: str, token: str):
+        if await self.get_last_sync_token(account_id) is not None:
+            await self.db_mngr.set_data_by_key(account_id, 'sync_token', token)
         else:
-            await self.db_mngr.insert_data('sync_token', token)
+            await self.db_mngr.insert_data(account_id, 'sync_token', token)

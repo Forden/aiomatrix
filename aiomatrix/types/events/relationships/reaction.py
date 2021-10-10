@@ -7,5 +7,5 @@ class Reaction(BasicRelationshipData):
     key: str
 
 
-class ReactionRelationship(BasicRelationEventContent):
+class ReactionRelationshipContent(BasicRelationEventContent):
     relationship: Reaction = Field(..., alias='m.relates_to')

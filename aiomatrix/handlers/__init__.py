@@ -1,2 +1,2 @@
-from .basefilter import BaseFilter
+from . import filters
 from .handler import Handler

@@ -1,26 +1,21 @@
-from enum import Enum
 from typing import Optional
 
 import pydantic
 
-
-class PresenceEnum(str, Enum):
-    offline = 'offline'
-    online = 'online'
-    unavailable = 'unavailable'
+from ... import misc, primitives
 
 
 class PresenceEventContent(pydantic.BaseModel):
     avatar_url: Optional[str]
     displayname: Optional[str]
     last_active_ago: Optional[int]
-    presence: PresenceEnum
+    presence: misc.PresenceEnum
     currently_active: Optional[bool]
     status_msg: Optional[str]
 
 
 class CurrentPresenceStatus(pydantic.BaseModel):
-    presence: PresenceEnum
+    presence: misc.PresenceEnum
     last_active_ago: Optional[int]
     status_msg: Optional[str]
     currently_active: Optional[bool]
@@ -28,5 +23,5 @@ class CurrentPresenceStatus(pydantic.BaseModel):
 
 class PresenceEvent(pydantic.BaseModel):
     content: PresenceEventContent
-    sender: str
+    sender: primitives.UserID
     type: str

@@ -5,7 +5,6 @@ import pydantic
 from .basic_file_info import BasicFileInfo
 from ..e2ee import EncryptedFile
 from ...events.base import BasicRoomMessageEventContent
-from ...misc import RoomMessageEventMsgTypesEnum
 
 
 class BasicImageInfo(BasicFileInfo):
@@ -20,7 +19,6 @@ class FileInfo(BasicImageInfo, pydantic.BaseModel):
 
 
 class ImageContent(BasicRoomMessageEventContent):
-    msgtype: RoomMessageEventMsgTypesEnum = RoomMessageEventMsgTypesEnum.image
     info: Optional[FileInfo]
     formatted_body: Optional[str]
     url: Optional[str]

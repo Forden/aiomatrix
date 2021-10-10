@@ -1,4 +1,4 @@
-from . import exceptions, types
-from .handlers import BaseFilter
-from .main import Aiomatrix
+from . import exceptions, types, utils
+from .handlers import filters
+from .main import AiomatrixClient, AiomatrixDispatcher
 from .utils import Executor, storage

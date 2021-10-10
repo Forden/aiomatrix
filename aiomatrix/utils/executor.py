@@ -6,12 +6,13 @@ import aiomatrix
 
 
 class Executor:
-    def __init__(self, client: 'aiomatrix.Aiomatrix', loop: AbstractEventLoop = None):
+    def __init__(self, client: 'aiomatrix.AiomatrixDispatcher', loop: AbstractEventLoop = None):
         if loop is not None:
             self._loop = loop
         self.client = client
         self._on_startup = []
         self._on_shutdown = []
+        self._running_lock = asyncio.Lock()
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
@@ -42,7 +43,7 @@ class Executor:
 
         try:
             loop.run_until_complete(self._start_polling())
-            loop.create_task(self.client.run(ignore_errors, timeout, sleep, track_presence))
+            loop.create_task(self.client.run_polling(ignore_errors, timeout, sleep, track_presence))
             loop.run_forever()
         except (KeyboardInterrupt, SystemExit):
             # loop.stop()

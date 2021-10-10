@@ -3,7 +3,7 @@ import typing
 import pydantic
 
 from aiomatrix import types
-from . import BaseFilter
+from aiomatrix.handlers.filters import BaseFilter
 
 
 class Handler(pydantic.BaseModel):
