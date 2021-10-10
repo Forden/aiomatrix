@@ -64,11 +64,11 @@ class SqliteStateStorageEngine(SqliteConnection):
         return r
 
     async def add_new_seen_event(self, account_id: str, event_id: aiomatrix.types.primitives.EventID):
-        sql = 'INSERT INTO seen_events (account_id, event_ID) VALUES (?, ?)'
+        sql = 'INSERT INTO seen_events (account_id, event_id) VALUES (?, ?)'
         params = (account_id, event_id)
         self._make_request(sql, params)
 
     async def add_new_seen_events_batch(self, account_id: str, event_ids: List[aiomatrix.types.primitives.EventID]):
-        sql = 'INSERT INTO seen_events (account_id, event_ID) VALUES (?, ?)'
+        sql = 'INSERT INTO seen_events (account_id, event_id) VALUES (?, ?)'
         params = [(account_id, event_id) for event_id in event_ids]
         self._make_request(sql, params)

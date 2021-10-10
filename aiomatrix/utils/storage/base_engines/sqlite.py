@@ -3,6 +3,8 @@ import pathlib
 import sqlite3
 from typing import List, Optional, Type, TypeVar, Union
 
+import pydantic
+
 T = TypeVar('T')
 
 
@@ -63,6 +65,10 @@ class SqliteConnection:
                         dict_data[k] = json.loads(v)
                     except ValueError:
                         pass
+            try:
+                model(**dict_data)
+            except pydantic.ValidationError as e:
+                print(dict_data, e)
             return model(**dict_data)
         else:
             return None
