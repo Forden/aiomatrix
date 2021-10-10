@@ -123,6 +123,21 @@ class AiomatrixDispatcher:
         filters = _clear_filters(handler_filters)
         self._redaction_handlers.append(handlers.Handler(callback=callback, filters=filters))
 
+    async def _save_events_in_db(self, client: AiomatrixClient, events: typing.List[types.events.RoomEvent]):
+        batch_size = 500
+        parts = [
+            events[i:i + batch_size] for i in range(
+                0, len(events), batch_size
+            )
+        ]
+        for i, part in enumerate(parts):
+            events_in_db = await self.storage.state_repo.are_new_events(
+                client.me, list(map(lambda x: x.event_id, part))
+            )
+            await self.storage.state_repo.insert_new_events_batch(
+                client.me, list(filter(lambda x: not events_in_db[x.event_id], part))
+            )
+
     async def process_sync(
             self, client: AiomatrixClient, state: types.responses.SyncResponse, process_joined_rooms: bool = True,
             process_invited_rooms: bool = True, process_left_rooms: bool = True, process_presence: bool = False
@@ -142,24 +157,13 @@ class AiomatrixDispatcher:
                 for room_id in state.rooms.join:
                     room_data = state.rooms.join[room_id]
                     if room_data.state.events:
-                        batch_size = 500
-                        parts = [
-                            room_data.state.events[i:i + batch_size] for i in range(
-                                0, len(room_data.state.events), batch_size
-                            )
-                        ]
-                        for i, part in enumerate(parts):
-                            events_in_db = await self.storage.state_repo.are_new_events(
-                                client.me, list(map(lambda x: x.event_id, part))
-                            )
-                            for event in part:
-                                event.room_id = room_id
-                            await self.storage.state_repo.insert_new_events_batch(
-                                client.me, list(filter(lambda x: not events_in_db[x.event_id], part))
-                            )
+                        for event in room_data.state.events:
+                            event.room_id = room_id
+                        await self._save_events_in_db(client, room_data.state.events)
                 for room_id in state.rooms.join:
                     room_data = state.rooms.join[room_id]
                     parsed_events = []
+                    print(room_data.timeline.limited)
                     for event in room_data.timeline.events:
                         event.room_id = room_id
                         parsed_events.append(parse_event(event))
@@ -175,6 +179,7 @@ class AiomatrixDispatcher:
                                 if await handler.check(event):
                                     await handler.callback(event, **kwargs)
                                     break
+                    await self._save_events_in_db(client, room_data.timeline.events)
             if process_invited_rooms:
                 if state.rooms.invite:
                     print(f'{state.rooms.invite=}')
