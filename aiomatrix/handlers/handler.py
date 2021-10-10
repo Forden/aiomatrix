@@ -5,6 +5,9 @@ import pydantic
 from aiomatrix import types
 from aiomatrix.handlers.filters import BaseFilter
 
+if typing.TYPE_CHECKING:
+    from aiomatrix import AiomatrixClient
+
 
 class Handler(pydantic.BaseModel):
     callback: typing.Callable
@@ -13,9 +16,9 @@ class Handler(pydantic.BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    async def check(self, event: types.events.RoomEvent) -> bool:
+    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient') -> bool:
         for event_filter in self.filters:
-            check_result = await event_filter.check(event)
+            check_result = await event_filter.check(event, client)
             if not check_result:
                 return False
         return True
