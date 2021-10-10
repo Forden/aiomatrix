@@ -68,10 +68,10 @@ class AiomatrixDispatcher:
             )
         ]
         for i, part in enumerate(parts):
-            events_in_db = await self.storage.state_repo.are_new_events(
+            events_in_db = await self.storage.events_repo.are_new_events(
                 client.me, list(map(lambda x: x.event_id, part))
             )
-            await self.storage.state_repo.insert_new_events_batch(
+            await self.storage.events_repo.insert_new_events_batch(
                 client.me, list(filter(lambda x: not events_in_db[x.event_id], part))
             )
 

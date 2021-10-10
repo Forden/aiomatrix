@@ -1,4 +1,4 @@
 from .internal_data import BaseInternalDataStorage, SqliteInternalDataStorage
 from .presence import BasePresenceStorage, SqlitePresenceStorage
-from .state import BaseStateStorage, SqliteStateStorage
+from .room_events import BaseEventStorage, SqliteEventStorage
 from .storage import StorageRepo

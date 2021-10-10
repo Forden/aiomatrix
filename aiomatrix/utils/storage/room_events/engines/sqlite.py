@@ -5,7 +5,7 @@ from .. import models
 from ...base_engines import SqliteConnection
 
 
-class SqliteStateStorageEngine(SqliteConnection):
+class SqliteEventStorageEngine(SqliteConnection):
     async def get_event(self, event_id: aiomatrix.types.primitives.EventID) -> Optional[models.EventInDB]:
         sql = 'SELECT * FROM events WHERE event_id = ?'
         params = (event_id,)

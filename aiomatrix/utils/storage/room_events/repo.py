@@ -1,11 +1,11 @@
 from typing import Dict, List, Optional, Union
 
 import aiomatrix
-from . import BaseStateStorage, models
+from . import BaseEventStorage, models
 
 
-class StateRepo:
-    def __init__(self, storage: BaseStateStorage):
+class EventsRepo:
+    def __init__(self, storage: BaseEventStorage):
         self.storage = storage
 
     async def get_event_data(

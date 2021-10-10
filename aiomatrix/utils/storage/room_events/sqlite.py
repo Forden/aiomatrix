@@ -2,12 +2,12 @@ import pathlib
 from typing import Dict, List, Optional, Union
 
 import aiomatrix
-from . import BaseStateStorage, engines, models
+from . import BaseEventStorage, engines, models
 
 
-class SqliteStateStorage(BaseStateStorage):
+class SqliteEventStorage(BaseEventStorage):
     def __init__(self, db_path: Union[pathlib.Path, str]):
-        self.db_mngr = engines.SqliteStateStorageEngine(db_path)
+        self.db_mngr = engines.SqliteEventStorageEngine(db_path)
 
     async def get_event_data(
             self, event_id: aiomatrix.types.primitives.EventID

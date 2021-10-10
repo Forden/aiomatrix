@@ -4,7 +4,7 @@ from aiomatrix import types
 from . import models
 
 
-class BaseStateStorage:
+class BaseEventStorage:
     async def get_event_data(
             self, event_id: types.primitives.EventID
     ) -> Optional[models.EventInDB]:

@@ -40,7 +40,7 @@ class SyncingAPI:
 
     async def get_room_state(self, room_id: types.primitives.RoomID) -> List[types.events.RoomEvent]:
         r = await self._raw_api.make_request(
-            'GET', f'_matrix/client/r0/rooms/{room_id}/state', model_type=types.events.RoomEvent
+            'GET', f'_matrix/client/r0/rooms/{room_id}/room_events', model_type=types.events.RoomEvent
         )
         return r
 
