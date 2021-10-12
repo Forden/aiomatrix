@@ -35,8 +35,11 @@ class MessageType(BaseFilter):
         self.message_types = set(map(lambda x: f'{x}', msg_type))
 
     async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
-        if event.content is not None:
-            return event.content.msgtype in self.message_types
+        try:
+            if event.content is not None:
+                return event.content.msgtype in self.message_types
+        except AttributeError:
+            return False
 
 
 class SenderID(BaseFilter):
@@ -73,3 +76,26 @@ class Outgoing(BaseFilter):
 
     async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient'):
         return event.sender == client.me.user_id
+
+
+class Text(BaseFilter):
+    def __init__(self, texts: List[str], case_insensitive: bool = True):
+        super().__init__()
+        self.filter_id: str = 'text'
+        self.case_insensitive = case_insensitive
+        if self.case_insensitive:
+            self.allowed_texts = map(lambda x: x.lower(), texts)
+        else:
+            self.allowed_texts = texts
+        self.allowed_texts = set(self.allowed_texts)
+
+    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
+        event_txt = event.content.body
+        if self.case_insensitive:
+            event_txt = event_txt.lower()
+        return event_txt in self.allowed_texts
+
+
+class Command(Text):
+    def __init__(self, commands: List[str], prefix: str = '!'):
+        super().__init__(list(map(lambda x: f'{prefix}{x}', commands)), True)

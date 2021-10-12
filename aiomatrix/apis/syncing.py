@@ -1,3 +1,4 @@
+import uuid
 from typing import List, Optional
 
 from .. import types
@@ -78,5 +79,18 @@ class SyncingAPI:
         r = await self._raw_api.make_request(
             'GET', f'_matrix/client/r0/rooms/{room_id}/messages', model_type=types.responses.RoomMessagesResponse,
             **payload
+        )
+        return r
+
+    async def send_message_event(
+            self, room_id: types.primitives.RoomID, event_type: types.misc.RoomEventTypesEnum, content: dict
+    ) -> types.responses.SentEventResponse:
+        payload = {
+            'data': content
+        }
+        txn_id = f'{uuid.uuid4()}'
+        r = await self._raw_api.make_request(
+            'PUT', f'_matrix/client/r0/rooms/{room_id}/send/{event_type}/{txn_id}',
+            model_type=types.responses.SentEventResponse, **payload
         )
         return r

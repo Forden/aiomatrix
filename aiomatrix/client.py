@@ -17,7 +17,9 @@ class AiomatrixClient:
         self.room_membership_api = apis.RoomMembershipAPI(self._raw_api)
         self.listing_room_api = apis.ListingRoomsAPI(self._raw_api)
         self.sync_api = apis.SyncingAPI(self._raw_api)
+
         self.presence_api = apis.modules.PresenceAPI(self._raw_api)
+        self.instant_messaging_api = apis.modules.InstantMessagingAPI(self.sync_api)
 
         self._handlers: typing.List[handlers.Handler] = []
         self._redaction_hanlders: typing.List[handlers.Handler] = []
@@ -40,8 +42,9 @@ class AiomatrixClient:
                 return True
         return False
 
+    @staticmethod
     def parse_event(
-            self, event: types.events.RoomEvent
+            event: types.events.RoomEvent
     ) -> typing.Union[types.events.RoomEvent, types.events.RoomMessageEvent, types.events.RoomRedactionEvent]:
         if event.unsigned.redacted_because is not None:
             # dirty hack to get to original event filed names

@@ -7,5 +7,5 @@ from .room_members import RoomMembersResponse
 from .room_membership import UserJoinRoomResponse, UserJoinedRoomsResponse
 from .room_messages import RoomMessagesResponse
 from .server_capabilities import ServerCapabilitiesResponse
-from .sync import SyncResponse
+from .sync import SentEventResponse, SyncResponse
 from .whoamiresponse import WhoAmIResponse

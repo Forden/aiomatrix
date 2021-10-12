@@ -5,7 +5,7 @@ from pydantic import Field
 
 from .. import modules
 from ..events import BasicEvent, RoomEvent, RoomStateEvent, StrippedStateEvent
-from ..primitives import RoomID
+from ..primitives import EventID, RoomID
 
 
 class RoomSummary(pydantic.BaseModel):
@@ -78,3 +78,7 @@ class SyncResponse(pydantic.BaseModel):
     to_device: Optional[modules.send_to_device.ToDevice]
     device_lists: Optional[modules.e2ee.DeviceLists]
     device_one_time_keys_count: Optional[Dict[str, int]]
+
+
+class SentEventResponse(pydantic.BaseModel):
+    event_id: EventID
