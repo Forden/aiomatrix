@@ -11,11 +11,9 @@ def _clear_filters(filters: typing.List[handlers.filters.BaseFilter]) -> typing.
     """
     removing repeating filters from list
     """
-    print(filters)
     result = {}
     for i in filters:
         result[i.filter_id] = i
-    print(list(result.values()), result, )
     return list(result.values())
 
 
@@ -47,7 +45,6 @@ class AiomatrixDispatcher:
             filters = []
         handler_filters.extend(filters)
         filters = _clear_filters(handler_filters)
-        print(filters)
         self._handlers.append(handlers.Handler(callback=callback, filters=filters))
 
     def register_redaction_handler(

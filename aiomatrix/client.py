@@ -20,6 +20,7 @@ class AiomatrixClient:
 
         self.presence_api = apis.modules.PresenceAPI(self._raw_api)
         self.instant_messaging_api = apis.modules.InstantMessagingAPI(self.sync_api)
+        self.typing_notifications_api = apis.modules.TypingNotifications(self._raw_api)
 
         self._handlers: typing.List[handlers.Handler] = []
         self._redaction_hanlders: typing.List[handlers.Handler] = []
