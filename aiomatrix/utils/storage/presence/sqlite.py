@@ -9,6 +9,9 @@ class SqlitePresenceStorage(BasePresenceStorage):
     def __init__(self, db_path: Union[pathlib.Path, str]):
         self.db_mngr = engines.SqlitePresenceStorageEngine(db_path)
 
+    async def setup(self):
+        await self.db_mngr.create_presence_table()
+
     async def get_user_data(
             self, account_id: str, user_id: aiomatrix.types.primitives.UserID
     ) -> Optional[models.PresenceInDB]:

@@ -8,6 +8,9 @@ class EventsRepo:
     def __init__(self, storage: BaseEventStorage):
         self.storage = storage
 
+    async def setup(self):
+        await self.storage.setup()
+
     async def get_event_data(
             self, account_id: Union[str, aiomatrix.types.responses.WhoAmIResponse],
             event_id: aiomatrix.types.primitives.EventID

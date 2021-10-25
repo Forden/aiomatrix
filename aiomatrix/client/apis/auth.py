@@ -1,7 +1,7 @@
 from typing import Optional
 
-from .. import types
-from ..utils import raw_api
+from aiomatrix import types
+from . import raw_api
 
 
 class AuthAPI:

@@ -2,9 +2,12 @@ import asyncio
 import time
 import typing
 
-from . import exceptions, handlers, types
-from .client import AiomatrixClient
-from .utils import storage
+from . import handlers
+from .. import exceptions, loggers, types
+from ..client import AiomatrixClient
+from ..utils import storage
+
+log = loggers.dispatcher
 
 
 def _clear_filters(filters: typing.List[handlers.filters.BaseFilter]) -> typing.List[handlers.filters.BaseFilter]:
@@ -50,7 +53,8 @@ class AiomatrixDispatcher:
     def register_redaction_handler(
             self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.filters.BaseFilter]] = None
     ):
-        handler_filters = [handlers.filters.builtin.EventType([types.misc.RoomEventTypesEnum.redaction])]
+        handler_filters = [
+            handlers.filters.builtin.EventType([types.misc.RoomEventTypesEnum.redaction])]
         if filters is None:
             filters = []
         handler_filters.extend(filters)
@@ -115,10 +119,10 @@ class AiomatrixDispatcher:
                     await self._save_events_in_db(client, room_data.timeline.events)
             if process_invited_rooms:
                 if state.rooms.invite:
-                    print(f'{state.rooms.invite=}')
+                    log.debug(f'{state.rooms.invite=}')
             if process_left_rooms:
                 if state.rooms.leave:
-                    print(f'{state.rooms.leave=}')
+                    log.debug(f'{state.rooms.leave=}')
         if process_presence:
             if state.presence:
                 for event in state.presence.events:
@@ -128,9 +132,9 @@ class AiomatrixDispatcher:
                 try:
                     user_presence = await client.presence_api.get_user_presence(user.user_id)
                 except exceptions.Forbidden:
-                    print(f'couldn\'t get presence status for {user.user_id}: forbidden')
+                    log.error(f'couldn\'t get presence status for {user.user_id}: forbidden')
                 except Exception as e:
-                    print(f'error getting presence status: {e=}')
+                    log.exception(f'error getting presence status: {e=}')
                 else:
                     await self.storage.presence_storage.update_user_presence(client.me, user.user_id, user_presence)
 
@@ -138,6 +142,7 @@ class AiomatrixDispatcher:
             self, ignore_errors: bool = True, timeout: int = 10, sleep: float = 0.1, track_presence: bool = False
     ):
         async with self._lock:  # to prevent multiple pollings
+            await self.storage.setup()
             coro_list = []
             for i in self._clients:
                 coro_list.append(
@@ -159,13 +164,13 @@ class AiomatrixDispatcher:
                     timeout=timeout * 1000
                 )
             except Exception as e:
-                print(f'sync error {e=} for client {client.me}')
+                log.exception(f'sync error {e=} for client {client.me}')
                 if not ignore_errors:
                     raise e
             else:
                 t = time.time()
                 await self.process_sync(client, state, process_joined_rooms=True, process_presence=track_presence)
-                print(f'sync for client {client.me} proceeded in {time.time() - t}')
+                log.debug(f'sync for client {client.me} proceeded in {time.time() - t}')
                 await self.storage.internal_repo.set_last_sync_token(client.me, state.next_batch)
             finally:
                 await asyncio.sleep(sleep)

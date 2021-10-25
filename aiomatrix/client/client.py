@@ -1,8 +1,10 @@
 import json
 import typing
 
-from . import apis, handlers, types
-from .utils import raw_api
+from aiomatrix import types
+from ..dispatcher import handlers
+from . import apis
+from .apis import raw_api
 
 
 class AiomatrixClient:

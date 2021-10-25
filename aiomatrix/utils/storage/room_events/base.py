@@ -5,6 +5,9 @@ from . import models
 
 
 class BaseEventStorage:
+    async def setup(self):
+        raise NotImplementedError
+    
     async def get_event_data(
             self, event_id: types.primitives.EventID
     ) -> Optional[models.EventInDB]:

@@ -1,7 +1,8 @@
 from typing import Optional
 
 from aiomatrix import types
-from aiomatrix.utils import quotes, raw_api
+from aiomatrix.utils import quotes
+from .. import raw_api
 
 
 class PresenceAPI:

@@ -3,7 +3,7 @@ import typing
 import pydantic
 
 from aiomatrix import types
-from aiomatrix.handlers.filters import BaseFilter
+from aiomatrix.dispatcher.handlers.filters import BaseFilter
 
 if typing.TYPE_CHECKING:
     from aiomatrix import AiomatrixClient

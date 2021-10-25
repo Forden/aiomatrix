@@ -8,6 +8,9 @@ class SqliteInternalDataStorage(BaseInternalDataStorage):
     def __init__(self, db_path: Union[pathlib.Path, str]):
         self.db_mngr = engines.SqliteInternalDataStorageEngine(db_path)
 
+    async def setup(self):
+        await self.db_mngr.create_internal_data_table()
+
     async def get_last_sync_token(self, account_id: str) -> Optional[models.InternalDataPair]:
         db_res = await self.db_mngr.get_data_by_key(account_id, 'sync_token')
         return db_res

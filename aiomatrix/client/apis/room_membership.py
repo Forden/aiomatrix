@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
-from .. import types
-from ..utils import raw_api
+from aiomatrix import types
+from . import raw_api
 
 
 class RoomMembershipAPI:

@@ -8,6 +8,9 @@ class InternalDataRepo:
     def __init__(self, storage: BaseInternalDataStorage):
         self.storage = storage
 
+    async def setup(self):
+        await self.storage.setup()
+
     async def get_last_sync_token(
             self, account_id: Union[str, aiomatrix.types.responses.WhoAmIResponse]
     ) -> Optional[str]:

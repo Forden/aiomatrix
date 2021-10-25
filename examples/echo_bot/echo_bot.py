@@ -10,7 +10,7 @@ async def echo_handler(
     await client.instant_messaging_api.send_notice(room_id=event.room_id, text=content.body, reply_to=event.event_id)
 
 
-async def main():
+def main():
     storage = aiomatrix.storage.StorageRepo(
         internal_storage=aiomatrix.storage.SqliteInternalDataStorage(db_path=config.db_path),
         events_storage=aiomatrix.storage.SqliteEventStorage(db_path=config.db_path),
@@ -21,5 +21,10 @@ async def main():
         auth_details=('password', {'login': '@login:example.com', 'password': 'password'}),
     )
     dp = aiomatrix.AiomatrixDispatcher(clients=[bot], data_storage=storage)
+    dp.register_message_handler(echo_handler)
     executor = aiomatrix.Executor(dp)
     executor.start_polling(timeout=10, track_presence=False)
+
+
+if __name__ == '__main__':
+    main()

@@ -4,6 +4,9 @@ from . import models
 
 
 class BaseInternalDataStorage:
+    async def setup(self):
+        raise NotImplementedError
+
     async def get_last_sync_token(self, account_id: str) -> Optional[models.InternalDataPair]:
         raise NotImplementedError
 

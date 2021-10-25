@@ -5,6 +5,9 @@ from . import models
 
 
 class BasePresenceStorage:
+    async def setup(self):
+        raise NotImplementedError
+
     async def get_user_data(
             self, account_id: str, user_id: aiomatrix.types.primitives.UserID
     ) -> Optional[models.PresenceInDB]:

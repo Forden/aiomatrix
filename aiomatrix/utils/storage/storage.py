@@ -1,4 +1,4 @@
-from . import BaseInternalDataStorage, BasePresenceStorage, BaseEventStorage
+from . import BaseEventStorage, BaseInternalDataStorage, BasePresenceStorage
 from .internal_data import InternalDataRepo
 from .presence import PresenceRepo
 from .room_events import EventsRepo
@@ -12,3 +12,8 @@ class StorageRepo:
         self.internal_repo = InternalDataRepo(internal_storage)
         self.events_repo = EventsRepo(events_storage)
         self.presence_storage = PresenceRepo(presence_storage)
+
+    async def setup(self):
+        await self.internal_repo.setup()
+        await self.events_repo.setup()
+        await self.presence_storage.setup()

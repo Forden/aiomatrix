@@ -5,6 +5,19 @@ from ...base_engines import SqliteConnection
 
 
 class SqliteInternalDataStorageEngine(SqliteConnection):
+    async def create_internal_data_table(self):
+        sql = '''
+            create table if not exists internal_data
+            (
+                account_id TEXT,
+                key        TEXT,
+                data       TEXT,
+                UNIQUE (account_id, key) ON CONFLICT ABORT,
+                PRIMARY KEY (account_id, key)
+            );
+        '''
+        self._make_request(sql)
+
     async def get_data_by_key(self, account_id: str, key: str) -> Optional[models.InternalDataPair]:
         sql = 'SELECT * FROM internal_data WHERE key = ? AND account_id = ?'
         params = (key, account_id)

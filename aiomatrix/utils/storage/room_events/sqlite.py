@@ -9,6 +9,10 @@ class SqliteEventStorage(BaseEventStorage):
     def __init__(self, db_path: Union[pathlib.Path, str]):
         self.db_mngr = engines.SqliteEventStorageEngine(db_path)
 
+    async def setup(self):
+        await self.db_mngr.create_seen_events_table()
+        await self.db_mngr.create_events_table()
+
     async def get_event_data(
             self, event_id: aiomatrix.types.primitives.EventID
     ) -> Optional[models.EventInDB]:

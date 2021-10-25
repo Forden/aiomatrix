@@ -6,6 +6,34 @@ from ...base_engines import SqliteConnection
 
 
 class SqliteEventStorageEngine(SqliteConnection):
+    async def create_events_table(self):
+        sql = '''
+            create table if not exists events
+            (
+                event_id   TEXT,
+                ts         INTEGER,
+                room_id    TEXT,
+                sender     TEXT,
+                event_type TEXT,
+                data       TEXT,
+                UNIQUE (event_id) ON CONFLICT IGNORE,
+                PRIMARY KEY (event_id)
+            );
+        '''
+        self._make_request(sql)
+
+    async def create_seen_events_table(self):
+        sql = '''
+            create table if not exists seen_events
+            (
+                account_id TEXT,
+                event_id   TEXT,
+                UNIQUE (account_id, event_id) ON CONFLICT IGNORE,
+                PRIMARY KEY (account_id, event_id)
+            );
+        '''
+        self._make_request(sql)
+
     async def get_event(self, event_id: aiomatrix.types.primitives.EventID) -> Optional[models.EventInDB]:
         sql = 'SELECT * FROM events WHERE event_id = ?'
         params = (event_id,)

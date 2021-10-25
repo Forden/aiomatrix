@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Type, TypeVar, Union
 import aiohttp
 import pydantic
 
-from .. import exceptions
+from aiomatrix import exceptions, loggers
 
 T = TypeVar('T')
 
@@ -65,7 +65,7 @@ class RawAPI:
         try:
             return model(**data)
         except pydantic.ValidationError as e:
-            print(f'validation error {e=} for json {data=}')
+            loggers.client.warn(f'validation error {e=} for json {data=}')
             return None
 
     async def make_request(

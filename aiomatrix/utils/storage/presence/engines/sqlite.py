@@ -7,6 +7,22 @@ from ...base_engines import SqliteConnection
 
 
 class SqlitePresenceStorageEngine(SqliteConnection):
+    async def create_presence_table(self):
+        sql = '''
+            create table if not exists presence
+            (
+                account_id  TEXT,
+                user_id     TEXT,
+                presence    TEXT,
+                last_active INTEGER,
+                status_msg  TEXT,
+                last_update INTEGER,
+                UNIQUE (account_id, user_id) ON CONFLICT IGNORE,
+                PRIMARY KEY (account_id, user_id)
+            );
+        '''
+        self._make_request(sql)
+
     async def get_user_data(
             self, account_id: str, user_id: aiomatrix.types.primitives.UserID
     ) -> Optional[models.PresenceInDB]:

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from ..syncing import SyncingAPI
-from ... import types
+from aiomatrix import types
 
 
 def _add_reply(content: dict, reply_to: types.primitives.EventID):
