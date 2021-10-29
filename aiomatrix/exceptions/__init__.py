@@ -1,1 +1,4 @@
-from .errors import Forbidden, MatrixAPIError, MatrixAPINetworkError, MissingToken, RoomAliasInUse, Unrecognized
+from .errors import (
+    Forbidden, MatrixAPIError, MatrixAPINetworkError, MissingToken, RoomAliasInUse, UnknownToken,
+    Unrecognized
+)

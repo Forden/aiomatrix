@@ -83,9 +83,14 @@ class RawAPI:
         else:
             return None
 
-    def set_access_token(self, access_token: str):
-        self._access_token = access_token
+    @property
+    def access_token(self):
+        return self._access_token
+
+    @access_token.setter
+    def access_token(self, token: str):
+        self._access_token = token
 
     @property
     def is_authorized(self) -> bool:
-        return self._access_token != ''
+        return self.access_token != ''

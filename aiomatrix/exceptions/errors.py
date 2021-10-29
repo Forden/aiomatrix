@@ -34,6 +34,10 @@ class MissingToken(MatrixAPIError, error_code='M_MISSING_TOKEN'):
     pass
 
 
+class UnknownToken(MatrixAPIError, error_code='M_UNKNOWN_TOKEN'):
+    pass
+
+
 class Forbidden(MatrixAPIError, error_code='M_FORBIDDEN'):
     pass
 

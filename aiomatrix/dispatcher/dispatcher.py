@@ -190,6 +190,13 @@ class AiomatrixDispatcher:
                     since=next_batch,
                     timeout=timeout * 1000
                 )
+            except (exceptions.MissingToken, exceptions.UnknownToken) as e:
+                log.exception(f'login error {e=} for client {client.me}')
+                await client.auth_api.logout()
+                await client.login()
+                if not client.auth_api.is_logged_in:
+                    log.exception(f'couldn\'t recover from login error for client {client.me}')
+                    break
             except Exception as e:
                 log.exception(f'sync error {e=} for client {client.me}')
                 if not ignore_errors:

@@ -3,6 +3,7 @@ import typing
 from typing import Optional, Tuple, Union
 
 from . import apis
+from .apis import raw_api
 from .. import types
 
 
@@ -11,7 +12,7 @@ class AiomatrixClient:
         self.server_url = server_url
         self._auth_cb = {'password': self.login_by_password}[auth_details[0]]
         self._auth_details = auth_details[1]
-        self._raw_api = apis.raw_api.RawAPI(self.server_url)
+        self._raw_api = raw_api.RawAPI(self.server_url)
         self.auth_api = apis.AuthAPI(self._raw_api)
         self.capabilities_api = apis.CapabilitiesAPI(self._raw_api)
         self.room_api = apis.RoomsAPI(self._raw_api)

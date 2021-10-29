@@ -36,10 +36,15 @@ class AuthAPI:
         return r
 
     def set_access_token(self, access_token: str):
-        self._raw_api.set_access_token(access_token)
+        self._raw_api.access_token = access_token
+
+    @property
+    def is_logged_in(self):
+        return self._raw_api.is_authorized
 
     async def logout(self):
         await self._raw_api.make_request('POST', '_matrix/client/r0/logout')
+        self._raw_api.access_token = ''
 
     async def logout_all(self):
         await self._raw_api.make_request('POST', '_matrix/client/r0/logout/all')
