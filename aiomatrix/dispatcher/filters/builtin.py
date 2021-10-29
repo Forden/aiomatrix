@@ -37,6 +37,8 @@ class MessageType(BaseFilter):
     async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
         try:
             if event.content is not None:
+                if event.content.new_content is not None:
+                    return event.content.new_content.msgtype in self.message_types
                 return event.content.msgtype in self.message_types
         except AttributeError:
             return False
@@ -99,3 +101,17 @@ class Text(BaseFilter):
 class Command(Text):
     def __init__(self, commands: List[str], prefix: str = '!'):
         super().__init__(list(map(lambda x: f'{prefix}{x}', commands)), True)
+
+
+class IsEditedMessage(BaseFilter):
+    def __init__(self, is_edited: bool = True):
+        super().__init__()
+        self.filter_id: str = 'is_edited_message'
+        self.is_edited = is_edited
+
+    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
+        try:
+            if event.content is not None:
+                return (event.content.new_content is not None) == self.is_edited
+        except AttributeError:
+            return False

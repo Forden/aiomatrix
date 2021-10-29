@@ -1,6 +1,6 @@
 from typing import Optional
 
-import pydantic
+from pydantic import BaseModel
 
 from .basic_file_info import BasicFileInfo
 from .image import BasicImageInfo
@@ -8,7 +8,7 @@ from ..e2ee import EncryptedFile
 from ...events.base import BasicRoomMessageEventContent
 
 
-class VideoInfo(BasicFileInfo, pydantic.BaseModel):
+class VideoInfo(BasicFileInfo, BaseModel):
     duration: str
     h: int
     w: int

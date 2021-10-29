@@ -1,6 +1,6 @@
 from typing import Optional
 
-import pydantic
+from pydantic import BaseModel
 
 from .basic_file_info import BasicFileInfo
 from ..e2ee import EncryptedFile
@@ -12,7 +12,7 @@ class BasicImageInfo(BasicFileInfo):
     w: int
 
 
-class FileInfo(BasicImageInfo, pydantic.BaseModel):
+class FileInfo(BasicImageInfo, BaseModel):
     thumbnail_url: Optional[str]
     thumnail_file: Optional[EncryptedFile]
     thumbnail_info: Optional[BasicImageInfo]

@@ -1,11 +1,11 @@
 from pydantic import Field
 
-from ..base import BasicRelationEventContent, BasicRelationshipData
+from ..base import RelationshipMixin, RelationshipToEventData
 
 
-class Reaction(BasicRelationshipData):
+class Reaction(RelationshipToEventData):
     key: str
 
 
-class ReactionRelationshipContent(BasicRelationEventContent):
+class ReactionRelationshipContent(RelationshipMixin):
     relationship: Reaction = Field(..., alias='m.relates_to')

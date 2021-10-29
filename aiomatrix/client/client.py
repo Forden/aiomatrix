@@ -1,18 +1,17 @@
 import json
 import typing
+from typing import Optional, Tuple, Union
 
-from aiomatrix import types
-from ..dispatcher import handlers
 from . import apis
-from .apis import raw_api
+from .. import types
 
 
 class AiomatrixClient:
-    def __init__(self, server_url: str, auth_details: typing.Tuple[str, dict], ):
+    def __init__(self, server_url: str, auth_details: Tuple[str, dict]):
         self.server_url = server_url
         self._auth_cb = {'password': self.login_by_password}[auth_details[0]]
         self._auth_details = auth_details[1]
-        self._raw_api = raw_api.RawAPI(self.server_url)
+        self._raw_api = apis.raw_api.RawAPI(self.server_url)
         self.auth_api = apis.AuthAPI(self._raw_api)
         self.capabilities_api = apis.CapabilitiesAPI(self._raw_api)
         self.room_api = apis.RoomsAPI(self._raw_api)
@@ -24,9 +23,6 @@ class AiomatrixClient:
         self.instant_messaging_api = apis.modules.InstantMessagingAPI(self.sync_api)
         self.typing_notifications_api = apis.modules.TypingNotifications(self._raw_api)
 
-        self._handlers: typing.List[handlers.Handler] = []
-        self._redaction_hanlders: typing.List[handlers.Handler] = []
-
         self.me: typing.Optional[types.responses.WhoAmIResponse] = None
 
     async def login(self):
@@ -35,7 +31,7 @@ class AiomatrixClient:
             if login_result:
                 self.me = await self.auth_api.whoami()
 
-    async def login_by_password(self, login: str, password: str, device_id: typing.Optional[str] = None) -> bool:
+    async def login_by_password(self, login: str, password: str, device_id: Optional[str] = None) -> bool:
         supported_login_types = await self.auth_api.get_login_types()
         support_password_auth = 'm.login.password' in map(lambda x: x.type, supported_login_types.flows)
         if support_password_auth:
@@ -47,29 +43,36 @@ class AiomatrixClient:
 
     @staticmethod
     def parse_event(
-            event: types.events.RoomEvent
-    ) -> typing.Union[types.events.RoomEvent, types.events.RoomMessageEvent, types.events.RoomRedactionEvent]:
-        if event.unsigned.redacted_because is not None:
-            # dirty hack to get to original event filed names
-            event = types.events.RoomRedactionEvent(**json.loads(event.json(by_alias=True)))
-            event.unsigned.redacted_because = types.events.RoomRedactionEvent(**event.unsigned.redacted_because)
-            return event
-        if event.type == types.misc.RoomEventTypesEnum.room_message:
-            if event.content:
-                message_event_content = types.events.BasicRoomMessageEventContent(**event.content)
-                msgtypes = {
-                    types.misc.RoomMessageEventMsgTypesEnum.audio:    types.modules.instant_messaging.AudioContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.emote:    types.modules.instant_messaging.EmoteContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.file:     types.modules.instant_messaging.FileContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.image:    types.modules.instant_messaging.ImageContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.location: types.modules.instant_messaging.LocationContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.notice:   types.modules.instant_messaging.NoticeContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.text:     types.modules.instant_messaging.TextContent,
-                    types.misc.RoomMessageEventMsgTypesEnum.video:    types.modules.instant_messaging.VideoContent,
-                }
-                if message_event_content.msgtype in msgtypes:
-                    event.content = msgtypes[message_event_content.msgtype](**event.content)
-        elif event.type == types.misc.RoomEventTypesEnum.reaction:
-            if event.content:
-                event.content = types.events.relationships.ReactionRelationshipContent(**event.content)
+            event: Union[types.events.RoomEvent, types.events.RoomStateEvent]
+    ) -> Union[types.events.RoomEvent, types.events.RoomMessageEvent, types.events.RoomRedactionEvent]:
+        if isinstance(event, types.events.RoomEvent):
+            if event.unsigned.redacted_because is not None:
+                # dirty hack to get to original event filed names
+                event = types.events.RoomRedactionEvent(**json.loads(event.json(by_alias=True)))
+                event.unsigned.redacted_because = types.events.RoomRedactionEvent(**event.unsigned.redacted_because)
+                return event
+            if event.type == types.misc.RoomEventTypesEnum.room_message:
+                if event.content is not None:
+                    message_event_content = types.events.BasicRoomMessageEventContent(**event.content)
+                    msgtypes = {
+                        types.misc.RoomMessageEventMsgTypesEnum.audio:    types.modules.instant_messaging.AudioContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.emote:    types.modules.instant_messaging.EmoteContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.file:     types.modules.instant_messaging.FileContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.image:    types.modules.instant_messaging.ImageContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.location: types.modules.instant_messaging.LocationContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.notice:   types.modules.instant_messaging.NoticeContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.text:     types.modules.instant_messaging.TextContent,
+                        types.misc.RoomMessageEventMsgTypesEnum.video:    types.modules.instant_messaging.VideoContent,
+                    }
+                    if message_event_content.msgtype in msgtypes:
+                        event.content = msgtypes[message_event_content.msgtype](**message_event_content.raw)
+                    if message_event_content.new_content and message_event_content.new_content.msgtype in msgtypes:
+                        event.content.new_content = msgtypes[message_event_content.new_content.msgtype](
+                            **message_event_content.new_content.raw
+                        )
+            elif event.type == types.misc.RoomEventTypesEnum.reaction:
+                if event.content:
+                    event.content = types.events.relationships.ReactionRelationshipContent(**event.content)
+        elif isinstance(event, types.events.RoomStateEvent):
+            print(event)
         return event

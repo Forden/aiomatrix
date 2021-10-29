@@ -1,16 +1,17 @@
 import asyncio
 import time
-import typing
+from typing import Callable, List, Optional
 
-from . import handlers
+from .filters import BaseFilter
+from .handlers import Handler
 from .. import exceptions, loggers, types
 from ..client import AiomatrixClient
-from ..utils import storage
+from ..utils.storage import StorageRepo
 
 log = loggers.dispatcher
 
 
-def _clear_filters(filters: typing.List[handlers.filters.BaseFilter]) -> typing.List[handlers.filters.BaseFilter]:
+def _clear_filters(filters: List[BaseFilter]) -> List[BaseFilter]:
     """
     removing repeating filters from list
     """
@@ -21,47 +22,59 @@ def _clear_filters(filters: typing.List[handlers.filters.BaseFilter]) -> typing.
 
 
 class AiomatrixDispatcher:
-    def __init__(self, clients: typing.List[AiomatrixClient], data_storage: storage.StorageRepo):
-        self.storage: storage.StorageRepo = data_storage
+    def __init__(self, clients: List[AiomatrixClient], data_storage: StorageRepo):
+        self.storage: StorageRepo = data_storage
         self._clients: list[AiomatrixClient] = clients
-        self._handlers = []
-        self._redaction_handlers = []
+        self._state_handlers: List[Handler] = []
+        self._handlers: List[Handler] = []
+        self._redaction_handlers: List[Handler] = []
         self._lock = asyncio.Lock()
 
-    def register_generic_handler(
-            self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.filters.BaseFilter]] = None
+    def register_state_handler(
+            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
     ):
         if filters is None:
             filters = []
         filters = _clear_filters(filters)
-        self._handlers.append(handlers.Handler(callback=callback, filters=filters))
+        self._state_handlers.append(Handler(callback=callback, filters=filters))
+
+    def register_generic_handler(
+            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
+    ):
+        if filters is None:
+            filters = []
+        filters = _clear_filters(filters)
+        self._handlers.append(Handler(callback=callback, filters=filters))
 
     def register_message_handler(
-            self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.filters.BaseFilter]] = None
+            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
     ):
+        from .filters import builtin
         handler_filters = [
-            handlers.filters.builtin.Incoming(),
-            handlers.filters.builtin.EventType(event_types=[types.misc.RoomEventTypesEnum.room_message]),
-            handlers.filters.builtin.MessageType(msg_type=[types.misc.RoomMessageEventMsgTypesEnum.text])
+            builtin.Incoming(),
+            builtin.EventType(event_types=[types.misc.RoomEventTypesEnum.room_message]),
+            builtin.MessageType(msg_type=[types.misc.RoomMessageEventMsgTypesEnum.text])
         ]
         if filters is None:
             filters = []
         handler_filters.extend(filters)
         filters = _clear_filters(handler_filters)
-        self._handlers.append(handlers.Handler(callback=callback, filters=filters))
+        self._handlers.append(Handler(callback=callback, filters=filters))
 
     def register_redaction_handler(
-            self, callback: typing.Callable, filters: typing.Optional[typing.List[handlers.filters.BaseFilter]] = None
+            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
     ):
+        from .filters import builtin
         handler_filters = [
-            handlers.filters.builtin.EventType([types.misc.RoomEventTypesEnum.redaction])]
+            builtin.EventType([types.misc.RoomEventTypesEnum.redaction])
+        ]
         if filters is None:
             filters = []
         handler_filters.extend(filters)
         filters = _clear_filters(handler_filters)
-        self._redaction_handlers.append(handlers.Handler(callback=callback, filters=filters))
+        self._redaction_handlers.append(Handler(callback=callback, filters=filters))
 
-    async def _save_events_in_db(self, client: AiomatrixClient, events: typing.List[types.events.RoomEvent]):
+    async def _save_events_in_db(self, client: AiomatrixClient, events: List[types.events.RoomEvent]):
         batch_size = 500
         parts = [
             events[i:i + batch_size] for i in range(
@@ -101,21 +114,35 @@ class AiomatrixDispatcher:
                 for room_id in state.rooms.join:
                     room_data = state.rooms.join[room_id]
                     parsed_events = []
+                    if room_data.state.events:
+                        for event in room_data.state.events:
+                            event.room_id = room_id
+                            parsed_events.append(client.parse_event(event))
                     for event in room_data.timeline.events:
                         event.room_id = room_id
                         parsed_events.append(client.parse_event(event))
                     for event in parsed_events:
                         kwargs = {'client': client}
-                        for handler in self._redaction_handlers:
-                            if await handler.check(event, client):
-                                await handler.callback(event, **kwargs)
-                                break
-                        if event.type != types.misc.RoomEventTypesEnum.redaction:
-                            kwargs['content'] = event.content
-                            for handler in self._handlers:
+                        if isinstance(event, types.events.RoomStateEvent):
+                            for handler in self._state_handlers:
+                                kwargs['content'] = event.content
                                 if await handler.check(event, client):
                                     await handler.callback(event, **kwargs)
                                     break
+                        elif isinstance(event, types.events.RoomEvent):
+                            if event.type != types.misc.RoomEventTypesEnum.redaction:
+                                kwargs['content'] = event.content
+                                for handler in self._handlers:
+                                    if await handler.check(event, client):
+                                        await handler.callback(event, **kwargs)
+                                        break
+                            for handler in self._redaction_handlers:
+                                if 'content' in kwargs:
+                                    del kwargs['content']
+                                if await handler.check(event, client):
+                                    await handler.callback(event, **kwargs)
+                                    break
+
                     await self._save_events_in_db(client, room_data.timeline.events)
             if process_invited_rooms:
                 if state.rooms.invite:

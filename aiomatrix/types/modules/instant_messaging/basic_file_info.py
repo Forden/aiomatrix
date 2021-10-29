@@ -1,8 +1,8 @@
 from typing import Optional
 
-import pydantic
+from pydantic import BaseModel
 
 
-class BasicFileInfo(pydantic.BaseModel):
+class BasicFileInfo(BaseModel):
     mimetype: Optional[str]
     size: int

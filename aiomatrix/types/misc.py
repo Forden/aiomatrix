@@ -19,6 +19,7 @@ class RoomStabilityEnum(str, Enum):
 
 class RoomEventTypesEnum(str, Enum):
     room_message = 'm.room.message'
+    room_member = 'm.room.member'
     reaction = 'm.reaction'
     redaction = 'm.room.redaction'
 

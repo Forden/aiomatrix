@@ -1,13 +1,12 @@
 import datetime
 from typing import Optional, Union
 
-import pydantic
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from .. import misc, primitives
 
 
-class EventObject(pydantic.BaseModel):
+class EventObject(BaseModel):
     raw: Optional[dict]
 
     class Config:
@@ -23,7 +22,7 @@ class BasicEvent(EventObject):
     type: str
 
 
-class UnsignedData(pydantic.BaseModel):
+class UnsignedData(BaseModel):
     age: Optional[int]
     redacted_because: Optional[dict]  # exists if event was redacted while client was offline
     transcation_id: Optional[str]
@@ -33,7 +32,7 @@ class RoomEvent(BasicEvent):
     event_id: primitives.EventID
     sender: primitives.UserID
     timestamp: datetime.datetime = Field(..., alias='origin_server_ts')
-    redacts: Optional[str]
+    redacts: Optional[primitives.EventID]
     unsigned: Optional[UnsignedData]
     room_id: Optional[primitives.RoomID]  # None only in /sync
 
@@ -41,6 +40,33 @@ class RoomEvent(BasicEvent):
 class RoomStateEvent(RoomEvent):
     state_key: str
     prev_content: Optional[primitives.EventContent]
+
+
+class RelationshipToEventData(EventObject):
+    rel_type: str  # add enum for realtionship types
+    event_id: primitives.EventID
+
+
+class ReplyToRelationshipData(EventObject):
+    event_id: primitives.EventID
+
+
+class ReplyToData(EventObject):
+    reply_data: ReplyToRelationshipData = Field(..., alias='m.in_reply_to')
+
+
+class RelationshipMixin(EventObject):
+    relationship: Optional[Union[RelationshipToEventData, ReplyToData]] = Field(None, alias='m.relates_to')
+
+
+class BasicRoomMessageEventContent(RelationshipMixin):
+    body: str
+    msgtype: Union[misc.RoomMessageEventMsgTypesEnum, str]
+    new_content: 'BasicRoomMessageEventContent' = Field(None, alias='m.new_content')
+
+
+class RoomMessageEvent(RoomEvent):
+    content: BasicRoomMessageEventContent
 
 
 class Event(BasicEvent):
@@ -51,19 +77,4 @@ class StrippedStateEvent(Event):
     state_key: str
 
 
-class BasicRoomMessageEventContent(EventObject):
-    body: str
-    msgtype: Union[misc.RoomMessageEventMsgTypesEnum, str]
-
-
-class BasicRelationshipData(EventObject):
-    rel_type: str  # add enum for realtionship types
-    event_id: primitives.EventID
-
-
-class BasicRelationEventContent(EventObject):
-    relationship: BasicRelationshipData = pydantic.Field(..., alias='m.relates_to')
-
-
-class RoomMessageEvent(RoomEvent):
-    content: BasicRoomMessageEventContent
+BasicRoomMessageEventContent.update_forward_refs()
