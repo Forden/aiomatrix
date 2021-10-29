@@ -142,7 +142,6 @@ class AiomatrixDispatcher:
                                 if await handler.check(event, client):
                                     await handler.callback(event, **kwargs)
                                     break
-
                     await self._save_events_in_db(client, room_data.timeline.events)
             if process_invited_rooms:
                 if state.rooms.invite:

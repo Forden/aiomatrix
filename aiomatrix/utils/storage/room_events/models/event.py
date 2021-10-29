@@ -7,8 +7,9 @@ from aiomatrix import types
 
 
 class EventInDB(pydantic.BaseModel):
-    account_id: str
-    event_id: str
+    account_id: types.primitives.UserID
+    event_id: types.primitives.EventID
+    relates_to: Optional[types.primitives.EventID]
     event_type: str
     room_id: Optional[types.primitives.RoomID]
     sender: types.primitives.UserID
@@ -17,5 +18,5 @@ class EventInDB(pydantic.BaseModel):
 
 
 class SeenEvent(pydantic.BaseModel):
-    account_id: str
-    event_id: str
+    account_id: types.primitives.UserID
+    event_id: types.primitives.EventID
