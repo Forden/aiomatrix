@@ -1,7 +1,7 @@
 from typing import Optional
 
-from ..syncing import SyncingAPI
 from aiomatrix import types
+from ..syncing import SyncingAPI
 
 
 def _add_reply(content: dict, reply_to: types.primitives.EventID):
@@ -38,5 +38,24 @@ class InstantMessagingAPI:
         }
         if reply_to is not None:
             content = _add_reply(content, reply_to)
+        r = await self._sync_client.send_message_event(room_id, types.misc.RoomEventTypesEnum.room_message, content)
+        return r
+
+    async def edit_text(
+            self, room_id: types.primitives.RoomID, event_id: types.primitives.EventID, text: str
+    ):
+        content = {
+            'body':          text,
+            'msgtype':       types.misc.RoomMessageEventMsgTypesEnum.text,
+            'm.new_content': {
+                'body':    text,
+                'msgtype': types.misc.RoomMessageEventMsgTypesEnum.text
+            },
+            'm.relates_to':  {
+                'rel_type': 'm.replace',
+                'event_id': event_id
+            }
+        }
+
         r = await self._sync_client.send_message_event(room_id, types.misc.RoomEventTypesEnum.room_message, content)
         return r
