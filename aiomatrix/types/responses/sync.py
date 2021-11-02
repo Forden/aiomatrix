@@ -4,8 +4,8 @@ import pydantic
 from pydantic import Field
 
 from .. import modules
-from ..events import BasicEvent, RoomEvent, RoomStateEvent, StrippedStateEvent
-from ..primitives import EventID, RoomID
+from ..events import BasicEvent, RoomEvent, RoomStateEvent
+from ..primitives import EventID, RoomID, UserID
 
 
 class RoomSummary(pydantic.BaseModel):
@@ -48,6 +48,14 @@ class JoinedRooms(pydantic.BaseModel):
     ephemeral: Optional[Ephemeral]
     account_data: Optional[AccountData]
     unread_notifications: Optional[UnreadNotifications]
+
+
+class Event(BasicEvent):
+    sender: UserID
+
+
+class StrippedStateEvent(Event):
+    state_key: str
 
 
 class InviteState(pydantic.BaseModel):

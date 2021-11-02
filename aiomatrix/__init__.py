@@ -1,6 +1,6 @@
 from . import exceptions, types, utils
 from .client import AiomatrixClient
-from .dispatcher import AiomatrixDispatcher, filters
-from .utils import Executor, storage
+from .dispatcher import AiomatrixDispatcher, filters, storage
+from .utils import Executor
 
 __version__ = '0.2.3'

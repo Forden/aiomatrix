@@ -2,7 +2,7 @@ from typing import Optional
 
 import pydantic
 
-from ..base import RoomEvent
+from ..base_room_events import RoomEvent
 
 
 class RoomRedactionContent(pydantic.BaseModel):

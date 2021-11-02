@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from .basic_file_info import BasicFileInfo
 from .image import BasicImageInfo
 from ..e2ee import EncryptedFile
-from ...events.base import BasicRoomMessageEventContent
+from ...events import BasicRoomMessageEventContent
 
 
 class FileInfo(BasicFileInfo, BaseModel):

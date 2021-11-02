@@ -2,7 +2,7 @@ from typing import Dict
 
 import pydantic
 
-from ..base import RoomStateEvent
+from ..base_room_events import RoomStateEvent
 
 
 class RoomPowerLevelNotifications(pydantic.BaseModel):

@@ -4,9 +4,9 @@ from typing import Callable, List, Optional
 
 from .filters import BaseFilter
 from .handlers import Handler
+from .storage import StorageRepo
 from .. import exceptions, loggers, types
 from ..client import AiomatrixClient
-from ..utils.storage import StorageRepo
 
 log = loggers.dispatcher
 
@@ -103,6 +103,7 @@ class AiomatrixDispatcher:
         :param process_presence:
         :return:
         """
+        AiomatrixClient.set(client)
         if state.rooms:
             if process_joined_rooms and state.rooms.join:
                 for room_id in state.rooms.join:

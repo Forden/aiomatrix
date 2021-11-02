@@ -1,12 +1,16 @@
 import datetime
-from typing import Optional, Union
+import typing
+from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from .. import misc, primitives
+from aiomatrix.utils.mixins import ContextVarMixin
+
+if typing.TYPE_CHECKING:
+    from ...client import AiomatrixClient
 
 
-class EventObject(BaseModel):
+class MatrixEventObject(BaseModel, ContextVarMixin):
     raw: Optional[dict]
 
     class Config:
@@ -16,65 +20,10 @@ class EventObject(BaseModel):
         super().__init__(**data)
         self.raw = data
 
-
-class BasicEvent(EventObject):
-    content: primitives.EventContent
-    type: str
-
-
-class UnsignedData(BaseModel):
-    age: Optional[int]
-    redacted_because: Optional[dict]  # exists if event was redacted while client was offline
-    transcation_id: Optional[str]
-
-
-class RoomEvent(BasicEvent):
-    event_id: primitives.EventID
-    sender: primitives.UserID
-    timestamp: datetime.datetime = Field(..., alias='origin_server_ts')
-    redacts: Optional[primitives.EventID]
-    unsigned: Optional[UnsignedData]
-    room_id: Optional[primitives.RoomID]  # None only in /sync
-
-
-class RoomStateEvent(RoomEvent):
-    state_key: str
-    prev_content: Optional[primitives.EventContent]
-
-
-class RelationshipToEventData(EventObject):
-    rel_type: str  # add enum for realtionship types
-    event_id: primitives.EventID
-
-
-class ReplyToRelationshipData(EventObject):
-    event_id: primitives.EventID
-
-
-class ReplyToData(EventObject):
-    reply_data: ReplyToRelationshipData = Field(..., alias='m.in_reply_to')
-
-
-class RelationshipMixin(EventObject):
-    relationship: Optional[Union[RelationshipToEventData, ReplyToData]] = Field(None, alias='m.relates_to')
-
-
-class BasicRoomMessageEventContent(RelationshipMixin):
-    body: str
-    msgtype: Union[misc.RoomMessageEventMsgTypesEnum, str]
-    new_content: 'BasicRoomMessageEventContent' = Field(None, alias='m.new_content')
-
-
-class RoomMessageEvent(RoomEvent):
-    content: BasicRoomMessageEventContent
-
-
-class Event(BasicEvent):
-    sender: primitives.UserID
-
-
-class StrippedStateEvent(Event):
-    state_key: str
-
-
-BasicRoomMessageEventContent.update_forward_refs()
+    @property
+    def client(self) -> 'AiomatrixClient':
+        from ...client import AiomatrixClient
+        client = AiomatrixClient.get()
+        if client is None:
+            raise RuntimeError('Couldn\'t get client instance from context. Set it by AiomatrixClient.set(client)')
+        return client

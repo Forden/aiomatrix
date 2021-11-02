@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from ..base import RelationshipMixin, RelationshipToEventData
+from ..base_room_events import RelationshipMixin, RelationshipToEventData
 
 
 class Reaction(RelationshipToEventData):

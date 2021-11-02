@@ -5,9 +5,10 @@ from typing import Optional, Tuple, Union
 from . import apis
 from .apis import raw_api
 from .. import types
+from ..utils.mixins import ContextVarMixin
 
 
-class AiomatrixClient:
+class AiomatrixClient(ContextVarMixin):
     def __init__(self, server_url: str, auth_details: Tuple[str, dict]):
         self.server_url = server_url
         self._auth_cb = {'password': self.login_by_password}[auth_details[0]]
@@ -65,12 +66,14 @@ class AiomatrixClient:
                         types.misc.RoomMessageEventMsgTypesEnum.text:     types.modules.instant_messaging.TextContent,
                         types.misc.RoomMessageEventMsgTypesEnum.video:    types.modules.instant_messaging.VideoContent,
                     }
+                    new_event = types.events.RoomMessageEvent(**json.loads(event.json(by_alias=True)))
                     if message_event_content.msgtype in msgtypes:
-                        event.content = msgtypes[message_event_content.msgtype](**message_event_content.raw)
+                        new_event.content = msgtypes[message_event_content.msgtype](**message_event_content.raw)
                     if message_event_content.new_content and message_event_content.new_content.msgtype in msgtypes:
-                        event.content.new_content = msgtypes[message_event_content.new_content.msgtype](
+                        new_event.content.new_content = msgtypes[message_event_content.new_content.msgtype](
                             **message_event_content.new_content.raw
                         )
+                    event = new_event
             elif event.type == types.misc.RoomEventTypesEnum.reaction:
                 if event.content:
                     event.content = types.events.relationships.ReactionRelationshipContent(**event.content)

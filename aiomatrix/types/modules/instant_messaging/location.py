@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from .image import BasicImageInfo
 from ..e2ee import EncryptedFile
-from ...events.base import BasicRoomMessageEventContent
+from ...events import BasicRoomMessageEventContent
 
 
 class LocationInfo(BasicImageInfo, BaseModel):

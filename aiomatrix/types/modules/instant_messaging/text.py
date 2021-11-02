@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ...events.base import BasicRoomMessageEventContent
+from ...events import BasicRoomMessageEventContent
 
 
 class TextContent(BasicRoomMessageEventContent):

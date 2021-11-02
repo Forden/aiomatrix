@@ -1,2 +1,2 @@
-from . import filters, handlers
+from . import filters, handlers, storage
 from .dispatcher import AiomatrixDispatcher

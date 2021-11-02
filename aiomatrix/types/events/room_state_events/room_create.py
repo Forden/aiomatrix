@@ -3,7 +3,7 @@ from typing import Optional
 import pydantic
 from pydantic import Field
 
-from ..base import RoomStateEvent
+from ..base_room_events import RoomStateEvent
 from ... import primitives
 
 
