@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-import aiomatrix.types.modules.presence.presence
+import aiomatrix.types.events.modules.presence.presence
 from . import BasePresenceStorage, models
 
 
@@ -30,7 +30,7 @@ class PresenceRepo:
 
     async def add_new_presence_update(
             self, account_id: Union[str, aiomatrix.types.responses.WhoAmIResponse],
-            event: aiomatrix.types.modules.presence.PresenceEvent
+            event: aiomatrix.types.events.modules.presence.PresenceEvent
     ):
         if isinstance(account_id, aiomatrix.types.responses.WhoAmIResponse):
             account_id = account_id.user_id
@@ -38,7 +38,8 @@ class PresenceRepo:
 
     async def update_user_presence(
             self, account_id: Union[str, aiomatrix.types.responses.WhoAmIResponse],
-            user_id: aiomatrix.types.primitives.UserID, event: aiomatrix.types.modules.presence.CurrentPresenceStatus
+            user_id: aiomatrix.types.primitives.UserID,
+            event: aiomatrix.types.events.modules.presence.CurrentPresenceStatus
     ):
         if isinstance(account_id, aiomatrix.types.responses.WhoAmIResponse):
             account_id = account_id.user_id

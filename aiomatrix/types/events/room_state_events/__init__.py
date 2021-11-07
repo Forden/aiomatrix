@@ -1,6 +1,12 @@
-from .room_canonical_alias import RoomCanonicalAlias
-from .room_create import RoomCreate
-from .room_join_rules import RoomJoinRuleEnum, RoomJoinRules
-from .room_member import RoomMemberEvent, RoomMemberMembershipEnum
-from .room_power_levels import RoomPowerLevelEvent
-from .room_redaction import RoomRedactionEvent
+from typing import Union
+
+from .room_canonical_alias import RoomCanonicalAliasContent
+from .room_create import RoomCreateContent
+from .room_join_rules import RoomJoinRuleEnum, RoomJoinRulesContent
+from .room_member import RoomMemberContent, RoomMemberMembershipEnum
+from .room_power_levels import RoomPowerLevelContent
+from .room_redaction import RoomRedactionContent
+
+RoomStateContent = Union[
+    RoomCanonicalAliasContent, RoomCreateContent, RoomJoinRulesContent, RoomMemberContent, RoomPowerLevelContent, RoomRedactionContent
+]

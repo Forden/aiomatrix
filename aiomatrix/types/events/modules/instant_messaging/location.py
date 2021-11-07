@@ -1,18 +1,18 @@
-from typing import Optional
+from __future__ import annotations
 
-from pydantic import BaseModel
+from typing import Optional
 
 from .image import BasicImageInfo
 from ..e2ee import EncryptedFile
-from ...events import BasicRoomMessageEventContent
+from ...base_room_events import BaseMessageEventContent
 
 
-class LocationInfo(BasicImageInfo, BaseModel):
+class LocationInfo(BasicImageInfo):
     thumbnail_url: Optional[str]
     thumnail_file: Optional[EncryptedFile]
     thumbnail_info: Optional[BasicImageInfo]
 
 
-class LocationContent(BasicRoomMessageEventContent):
+class LocationContent(BaseMessageEventContent):
     info: Optional[LocationInfo]
     geo_uri: str

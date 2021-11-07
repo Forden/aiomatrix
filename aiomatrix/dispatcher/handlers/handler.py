@@ -1,6 +1,8 @@
+import inspect
 import typing
 
 import pydantic
+from pydantic import root_validator
 
 from aiomatrix import types
 from aiomatrix.dispatcher.filters import BaseFilter
@@ -9,9 +11,19 @@ if typing.TYPE_CHECKING:
     from aiomatrix import AiomatrixClient
 
 
-class Handler(pydantic.BaseModel):
+class HandlerCallback(pydantic.BaseModel):
     callback: typing.Callable
-    filters: typing.Optional[typing.List[BaseFilter]] = None  # placeholder
+    spec: typing.Optional[inspect.FullArgSpec] = None
+
+    @root_validator(pre=True)
+    def _parse_spec(cls, values: dict):
+        values['spec'] = inspect.getfullargspec(values['callback'])
+        return values
+
+
+class Handler(pydantic.BaseModel):
+    callback: HandlerCallback
+    filters: typing.Tuple[BaseFilter, ...]
 
     class Config:
         arbitrary_types_allowed = True

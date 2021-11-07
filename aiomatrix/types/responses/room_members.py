@@ -2,8 +2,8 @@ from typing import List
 
 import pydantic
 
-from ..events import RoomMemberEvent
+from ..events import RoomStateEvent
 
 
 class RoomMembersResponse(pydantic.BaseModel):
-    chunk: List[RoomMemberEvent]
+    chunk: List[RoomStateEvent]

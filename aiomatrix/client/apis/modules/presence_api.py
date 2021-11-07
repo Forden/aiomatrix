@@ -22,13 +22,15 @@ class PresenceAPI:
             payload['data']['status_msg'] = status_msg
         await self._raw_api.make_request(
             'PUT', f'_matrix/client/r0/presence/{quotes.quote_user_id(user_id)}/status',
-            model_type=types.modules.presence.CurrentPresenceStatus
+            model_type=types.events.modules.presence.CurrentPresenceStatus
         )
 
-    async def get_user_presence(self, user_id: types.primitives.UserID) -> types.modules.presence.CurrentPresenceStatus:
+    async def get_user_presence(
+            self, user_id: types.primitives.UserID
+    ) -> types.events.modules.presence.CurrentPresenceStatus:
         r = await self._raw_api.make_request(
             'GET',
             f'_matrix/client/r0/presence/{quotes.quote_user_id(user_id)}/status',
-            model_type=types.modules.presence.CurrentPresenceStatus
+            model_type=types.events.modules.presence.CurrentPresenceStatus
         )
         return r

@@ -1,7 +1,9 @@
-from . import relationships
+from . import modules, relationships
 from .base_room_events import (
-    BasicEvent, RelationshipMixin, RelationshipToEventData, RoomEvent,
-    RoomStateEvent
+    BasicEvent, BaseMessageEventContent, RelationshipMixin, RelationshipToEventData, RoomEvent, RoomStateEvent
 )
-from .room_message_event import BasicRoomMessageEventContent, RoomMessageEvent
-from .room_state_events import *
+from .room_message_event import RoomMessageEvent
+from .room_state_events import (
+    RoomCanonicalAliasContent, RoomCreateContent, RoomJoinRuleEnum, RoomJoinRulesContent, RoomMemberContent,
+    RoomMemberMembershipEnum, RoomPowerLevelContent, RoomRedactionContent, RoomStateContent
+)

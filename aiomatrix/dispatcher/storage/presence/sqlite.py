@@ -22,7 +22,9 @@ class SqlitePresenceStorage(BasePresenceStorage):
         event_in_db = await self.get_user_data(account_id, user_id)
         return event_in_db is None
 
-    async def add_new_presence_update(self, account_id: str, event: aiomatrix.types.modules.presence.PresenceEvent):
+    async def add_new_presence_update(
+            self, account_id: str, event: aiomatrix.types.events.modules.presence.PresenceEvent
+    ):
         if await self.is_new_user(account_id, event.sender):
             await self.db_mngr.add_new_presence(
                 account_id, event.sender, event.content.presence, event.content.last_active_ago,
@@ -31,7 +33,7 @@ class SqlitePresenceStorage(BasePresenceStorage):
 
     async def update_user_presence(
             self, account_id: str, user_id: aiomatrix.types.primitives.UserID,
-            event: aiomatrix.types.modules.presence.CurrentPresenceStatus
+            event: aiomatrix.types.events.modules.presence.CurrentPresenceStatus
     ):
         await self.db_mngr.update_user_presence(
             account_id, user_id, event.presence, event.last_active_ago, event.status_msg

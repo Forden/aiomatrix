@@ -1,29 +1,20 @@
 import datetime
-import typing
-from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra, root_validator
 
-from aiomatrix.utils.mixins import ContextVarMixin
-
-if typing.TYPE_CHECKING:
-    from ...client import AiomatrixClient
+from ...utils.mixins import ContextVarMixin
 
 
-class MatrixEventObject(BaseModel, ContextVarMixin):
-    raw: Optional[dict]
+class MatrixObject(BaseModel, ContextVarMixin):
+    raw: dict
 
     class Config:
+        allow_mutation = True
         json_encoders = {datetime.datetime: lambda dt: int(dt.timestamp())}
+        validate_assignment = True
+        extra = Extra.ignore
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.raw = data
-
-    @property
-    def client(self) -> 'AiomatrixClient':
-        from ...client import AiomatrixClient
-        client = AiomatrixClient.get()
-        if client is None:
-            raise RuntimeError('Couldn\'t get client instance from context. Set it by AiomatrixClient.set(client)')
-        return client
+    @root_validator(pre=True)
+    def _parse_raw(cls, values: dict):
+        values['raw'] = values.copy()
+        return values

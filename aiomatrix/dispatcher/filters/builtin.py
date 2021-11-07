@@ -14,7 +14,7 @@ class RoomID(BaseFilter):
         self.filter_id: str = 'room_id'
         self.room_ids = set(room_ids)
 
-    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient') -> bool:
         return event.room_id in self.room_ids
 
 
@@ -24,7 +24,7 @@ class EventType(BaseFilter):
         self.filter_id: str = 'event_type'
         self.event_types = set(map(lambda x: f'{x}', event_types))
 
-    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient') -> bool:
         return event.type in self.event_types
 
 
@@ -34,14 +34,12 @@ class MessageType(BaseFilter):
         self.filter_id: str = 'message_type'
         self.message_types = set(map(lambda x: f'{x}', msg_type))
 
-    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
-        try:
-            if event.content is not None:
-                if event.content.new_content is not None:
-                    return event.content.new_content.msgtype in self.message_types
-                return event.content.msgtype in self.message_types
-        except AttributeError:
-            return False
+    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient') -> bool:
+        if event.content is not None:
+            if isinstance(event.content, types.events.modules.instant_messaging.NewContent):
+                return event.content.new_content.msgtype in self.message_types
+            return event.content.msgtype in self.message_types
+        return False
 
 
 class SenderID(BaseFilter):
@@ -50,7 +48,7 @@ class SenderID(BaseFilter):
         self.filter_id: str = 'sender_id'
         self.sender_ids = set(sender_ids)
 
-    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient') -> bool:
         return event.sender in self.sender_ids
 
 
@@ -63,7 +61,7 @@ class Incoming(BaseFilter):
         super().__init__()
         self.filter_id: str = 'message_direction'
 
-    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient') -> bool:
         return event.sender != client.me.user_id
 
 
@@ -76,7 +74,7 @@ class Outgoing(BaseFilter):
         super().__init__()
         self.filter_id: str = 'message_direction'
 
-    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.RoomEvent, client: 'AiomatrixClient') -> bool:
         return event.sender == client.me.user_id
 
 
@@ -91,7 +89,7 @@ class Text(BaseFilter):
             self.allowed_texts = texts
         self.allowed_texts = set(self.allowed_texts)
 
-    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient') -> bool:
         event_txt = event.content.body
         if self.case_insensitive:
             event_txt = event_txt.lower()
@@ -109,9 +107,6 @@ class IsEditedMessage(BaseFilter):
         self.filter_id: str = 'is_edited_message'
         self.is_edited = is_edited
 
-    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient'):
-        try:
-            if event.content is not None:
-                return (event.content.new_content is not None) == self.is_edited
-        except AttributeError:
-            return False
+    async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient') -> bool:
+        if event.content is not None:
+            return isinstance(event.content, types.events.modules.instant_messaging.NewContent) == self.is_edited

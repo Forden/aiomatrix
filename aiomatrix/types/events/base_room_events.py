@@ -3,11 +3,14 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
-from .base import MatrixEventObject
+from .base import MatrixObject
+from .room_state_events import RoomStateContent
 from .. import primitives
+from ..misc import RoomMessageEventMsgTypesEnum
+from ...utils.mixins import ContextClientMixin
 
 
-class BasicEvent(MatrixEventObject):
+class BasicEvent(MatrixObject):
     content: primitives.EventContent
     type: str
 
@@ -18,7 +21,7 @@ class UnsignedData(BaseModel):
     transcation_id: Optional[str]
 
 
-class RoomEvent(BasicEvent):
+class RoomEvent(BasicEvent, ContextClientMixin):
     event_id: primitives.EventID
     sender: primitives.UserID
     timestamp: datetime.datetime = Field(..., alias='origin_server_ts')
@@ -28,28 +31,28 @@ class RoomEvent(BasicEvent):
 
 
 class RoomStateEvent(RoomEvent):
+    content: RoomStateContent
     state_key: str
     prev_content: Optional[primitives.EventContent]
 
 
-class RelationshipToEventData(MatrixEventObject):
-    rel_type: str  # add enum for realtionship types
+class RelationshipToEventData(MatrixObject):
+    rel_type: str  # add enum for realtionship test_types
     event_id: primitives.EventID
 
 
-class ReplyToRelationshipData(MatrixEventObject):
+class ReplyToRelationshipData(MatrixObject):
     event_id: primitives.EventID
 
 
-class ReplyToData(MatrixEventObject):
+class ReplyToData(MatrixObject):
     reply_data: ReplyToRelationshipData = Field(..., alias='m.in_reply_to')
 
 
-class RelationshipMixin(MatrixEventObject):
+class RelationshipMixin(MatrixObject):
     relationship: Optional[Union[RelationshipToEventData, ReplyToData]] = Field(None, alias='m.relates_to')
 
 
-
-
-
-
+class BaseMessageEventContent(MatrixObject):
+    body: Optional[str]
+    msgtype: Union[RoomMessageEventMsgTypesEnum, str]

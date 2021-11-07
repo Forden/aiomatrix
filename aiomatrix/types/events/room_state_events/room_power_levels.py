@@ -2,8 +2,6 @@ from typing import Dict
 
 import pydantic
 
-from ..base_room_events import RoomStateEvent
-
 
 class RoomPowerLevelNotifications(pydantic.BaseModel):
     room: int = 50
@@ -22,5 +20,5 @@ class RoomPowerLevelContent(pydantic.BaseModel):
     notifications: RoomPowerLevelNotifications = RoomPowerLevelNotifications()
 
 
-class RoomPowerLevelEvent(RoomStateEvent):
-    content: RoomPowerLevelContent
+# class RoomPowerLevelEvent(RoomStateEvent):
+#     content: RoomPowerLevelContent

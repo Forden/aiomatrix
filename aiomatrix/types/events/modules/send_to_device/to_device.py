@@ -2,7 +2,7 @@ from typing import Any, List
 
 import pydantic
 
-from ... import primitives
+from aiomatrix.types import primitives
 
 
 class ToDeviceEvent(pydantic.BaseModel):

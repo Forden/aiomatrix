@@ -2,7 +2,7 @@ from typing import Optional
 
 import pydantic
 
-from ... import misc, primitives
+from aiomatrix.types import misc, primitives
 
 
 class PresenceEventContent(pydantic.BaseModel):

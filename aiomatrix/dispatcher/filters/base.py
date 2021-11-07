@@ -13,5 +13,5 @@ class BaseFilter(metaclass=abc.ABCMeta):
         self.filter_id: str = f'{uuid.uuid4()}'
 
     @abc.abstractmethod
-    def check(self, event: types.events.BasicEvent, client: 'AiomatrixClient'):
+    async def check(self, event: types.events.BasicEvent, client: 'AiomatrixClient') -> bool:
         raise NotImplementedError

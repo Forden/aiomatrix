@@ -3,8 +3,7 @@ from typing import Dict, List, Optional
 import pydantic
 from pydantic import Field
 
-from .. import modules
-from ..events import BasicEvent, RoomEvent, RoomStateEvent
+from ..events import BasicEvent, RoomEvent, RoomStateEvent, modules
 from ..primitives import EventID, RoomID, UserID
 
 

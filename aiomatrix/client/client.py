@@ -1,6 +1,5 @@
-import json
 import typing
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 from . import apis
 from .apis import raw_api
@@ -42,41 +41,3 @@ class AiomatrixClient(ContextVarMixin):
                 self.auth_api.set_access_token(login_response.access_token)
                 return True
         return False
-
-    @staticmethod
-    def parse_event(
-            event: Union[types.events.RoomEvent, types.events.RoomStateEvent]
-    ) -> Union[types.events.RoomEvent, types.events.RoomMessageEvent, types.events.RoomRedactionEvent]:
-        if isinstance(event, types.events.RoomEvent):
-            if event.unsigned.redacted_because is not None:
-                # dirty hack to get to original event filed names
-                event = types.events.RoomRedactionEvent(**json.loads(event.json(by_alias=True)))
-                event.unsigned.redacted_because = types.events.RoomRedactionEvent(**event.unsigned.redacted_because)
-                return event
-            if event.type == types.misc.RoomEventTypesEnum.room_message:
-                if event.content is not None:
-                    message_event_content = types.events.BasicRoomMessageEventContent(**event.content)
-                    msgtypes = {
-                        types.misc.RoomMessageEventMsgTypesEnum.audio:    types.modules.instant_messaging.AudioContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.emote:    types.modules.instant_messaging.EmoteContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.file:     types.modules.instant_messaging.FileContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.image:    types.modules.instant_messaging.ImageContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.location: types.modules.instant_messaging.LocationContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.notice:   types.modules.instant_messaging.NoticeContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.text:     types.modules.instant_messaging.TextContent,
-                        types.misc.RoomMessageEventMsgTypesEnum.video:    types.modules.instant_messaging.VideoContent,
-                    }
-                    new_event = types.events.RoomMessageEvent(**json.loads(event.json(by_alias=True)))
-                    if message_event_content.msgtype in msgtypes:
-                        new_event.content = msgtypes[message_event_content.msgtype](**message_event_content.raw)
-                    if message_event_content.new_content and message_event_content.new_content.msgtype in msgtypes:
-                        new_event.content.new_content = msgtypes[message_event_content.new_content.msgtype](
-                            **message_event_content.new_content.raw
-                        )
-                    event = new_event
-            elif event.type == types.misc.RoomEventTypesEnum.reaction:
-                if event.content:
-                    event.content = types.events.relationships.ReactionRelationshipContent(**event.content)
-        elif isinstance(event, types.events.RoomStateEvent):
-            print(event)
-        return event

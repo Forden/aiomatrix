@@ -1,9 +1,11 @@
 import asyncio
 import time
-from typing import Callable, List, Optional
+from typing import Callable, List, Union
+
+import pydantic
 
 from .filters import BaseFilter
-from .handlers import Handler
+from .observers import MatrixEventsObserver
 from .storage import StorageRepo
 from .. import exceptions, loggers, types
 from ..client import AiomatrixClient
@@ -24,55 +26,56 @@ def _clear_filters(filters: List[BaseFilter]) -> List[BaseFilter]:
 class AiomatrixDispatcher:
     def __init__(self, clients: List[AiomatrixClient], data_storage: StorageRepo):
         self.storage: StorageRepo = data_storage
-        self._clients: list[AiomatrixClient] = clients
-        self._state_handlers: List[Handler] = []
-        self._handlers: List[Handler] = []
-        self._redaction_handlers: List[Handler] = []
+        self._clients: List[AiomatrixClient] = clients
+        self._state_observer: MatrixEventsObserver = MatrixEventsObserver()
+        self._generic_observer: MatrixEventsObserver = MatrixEventsObserver()
+        self._redaction_observer: MatrixEventsObserver = MatrixEventsObserver()
         self._lock = asyncio.Lock()
 
     def register_state_handler(
-            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
+            self, callback: Callable, *filters: BaseFilter
     ):
-        if filters is None:
-            filters = []
-        filters = _clear_filters(filters)
-        self._state_handlers.append(Handler(callback=callback, filters=filters))
+        self._state_observer.register(callback, *filters)
 
     def register_generic_handler(
-            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
+            self, callback: Callable, *filters: BaseFilter
     ):
-        if filters is None:
-            filters = []
-        filters = _clear_filters(filters)
-        self._handlers.append(Handler(callback=callback, filters=filters))
+        self._generic_observer.register(callback, *filters)
 
     def register_message_handler(
-            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
+            self, callback: Callable, *filters: BaseFilter
     ):
         from .filters import builtin
-        handler_filters = [
+        self._generic_observer.register(
+            callback,
             builtin.Incoming(),
             builtin.EventType(event_types=[types.misc.RoomEventTypesEnum.room_message]),
-            builtin.MessageType(msg_type=[types.misc.RoomMessageEventMsgTypesEnum.text])
-        ]
-        if filters is None:
-            filters = []
-        handler_filters.extend(filters)
-        filters = _clear_filters(handler_filters)
-        self._handlers.append(Handler(callback=callback, filters=filters))
+            builtin.MessageType(msg_type=[types.misc.RoomMessageEventMsgTypesEnum.text]),
+            *filters
+        )
 
-    def register_redaction_handler(
-            self, callback: Callable, filters: Optional[List[BaseFilter]] = None
+    def register_edited_message_handler(
+            self, callback: Callable, *filters: BaseFilter
     ):
         from .filters import builtin
-        handler_filters = [
-            builtin.EventType([types.misc.RoomEventTypesEnum.redaction])
-        ]
-        if filters is None:
-            filters = []
-        handler_filters.extend(filters)
-        filters = _clear_filters(handler_filters)
-        self._redaction_handlers.append(Handler(callback=callback, filters=filters))
+        self._generic_observer.register(
+            callback,
+            builtin.Incoming(),
+            builtin.EventType(event_types=[types.misc.RoomEventTypesEnum.room_message]),
+            builtin.MessageType(msg_type=[types.misc.RoomMessageEventMsgTypesEnum.text]),
+            builtin.IsEditedMessage(is_edited=True),
+            *filters
+        )
+
+    def register_redaction_handler(
+            self, callback: Callable, *filters: BaseFilter
+    ):
+        from .filters import builtin
+        self._redaction_observer.register(
+            callback,
+            builtin.EventType([types.misc.RoomEventTypesEnum.redaction]),
+            *filters
+        )
 
     async def _save_events_in_db(self, client: AiomatrixClient, events: List[types.events.RoomEvent]):
         batch_size = 500
@@ -88,6 +91,34 @@ class AiomatrixDispatcher:
             await self.storage.events_repo.insert_new_events_batch(
                 client.me, list(filter(lambda x: not events_in_db[x.event_id], part))
             )
+
+    @staticmethod
+    def _parse_event(
+            event: Union[types.events.RoomEvent, types.events.RoomStateEvent],
+            ignore_errors: bool = True
+    ) -> Union[types.events.RoomEvent, types.events.RoomMessageEvent, types.events.RoomStateEvent]:
+        if isinstance(event, types.events.RoomEvent):
+            # if event.unsigned.redacted_because is not None:
+            #     # dirty hack to get to original event filed names
+            #     event = types.events.RoomRedactionEvent(**json.loads(event.json(by_alias=True)))
+            #     event.unsigned.redacted_because = test_types.events.RoomRedactionEvent(**event.unsigned.redacted_because)
+            #     return event
+            if event.type == types.misc.RoomEventTypesEnum.room_message:
+                if event.content is not None:
+                    try:
+                        event = types.events.RoomMessageEvent.parse_obj(event.dict(by_alias=True))
+                    except pydantic.ValidationError as e:
+                        if ignore_errors:
+                            return event
+                        raise e
+                    else:
+                        return event
+            elif event.type == types.misc.RoomEventTypesEnum.reaction:
+                if event.content:
+                    event.content = types.events.relationships.ReactionRelationshipContent.parse_obj(event.content)
+        elif isinstance(event, types.events.RoomStateEvent):
+            log.debug(f'received state event: {event}')
+        return event
 
     async def process_sync(
             self, client: AiomatrixClient, state: types.responses.SyncResponse, process_joined_rooms: bool = True,
@@ -118,31 +149,18 @@ class AiomatrixDispatcher:
                     if room_data.state.events:
                         for event in room_data.state.events:
                             event.room_id = room_id
-                            parsed_events.append(client.parse_event(event))
+                            parsed_events.append(self._parse_event(event))
                     for event in room_data.timeline.events:
                         event.room_id = room_id
-                        parsed_events.append(client.parse_event(event))
+                        parsed_events.append(self._parse_event(event))
                     for event in parsed_events:
-                        kwargs = {'client': client}
                         if isinstance(event, types.events.RoomStateEvent):
-                            for handler in self._state_handlers:
-                                kwargs['content'] = event.content
-                                if await handler.check(event, client):
-                                    await handler.callback(event, **kwargs)
-                                    break
-                        elif isinstance(event, types.events.RoomEvent):
+                            await self._state_observer.trigger(event, client)
+                        elif any(isinstance(event, i) for i in [types.events.RoomEvent, types.events.RoomMessageEvent]):
                             if event.type != types.misc.RoomEventTypesEnum.redaction:
-                                kwargs['content'] = event.content
-                                for handler in self._handlers:
-                                    if await handler.check(event, client):
-                                        await handler.callback(event, **kwargs)
-                                        break
-                            for handler in self._redaction_handlers:
-                                if 'content' in kwargs:
-                                    del kwargs['content']
-                                if await handler.check(event, client):
-                                    await handler.callback(event, **kwargs)
-                                    break
+                                await self._generic_observer.trigger(event, client)
+                            else:
+                                await self._redaction_observer.trigger(event, client)
                     await self._save_events_in_db(client, room_data.timeline.events)
             if process_invited_rooms:
                 if state.rooms.invite:

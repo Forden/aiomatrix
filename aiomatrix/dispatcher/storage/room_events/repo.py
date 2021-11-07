@@ -75,9 +75,9 @@ class EventsRepo:
 
     # TODO: implement with account_id in mind
     # async def get_events_by_room(
-    #         self, account_id: Union[str, aiomatrix.types.responses.WhoAmIResponse],
-    #         room_id: aiomatrix.types.primitives.RoomID
+    #         self, account_id: Union[str, aiomatrix.test_types.responses.WhoAmIResponse],
+    #         room_id: aiomatrix.test_types.primitives.RoomID
     # ) -> List[models.EventInDB]:
-    #     if isinstance(account_id, aiomatrix.types.responses.WhoAmIResponse):
+    #     if isinstance(account_id, aiomatrix.test_types.responses.WhoAmIResponse):
     #         account_id = account_id.user_id
     #     return await self.storage.get_events_by_room(account_id, room_id)
