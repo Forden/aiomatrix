@@ -48,4 +48,7 @@ class MatrixEventsObserver:
                             additional_args[arg] = event.content.new_content
                         else:
                             additional_args[arg] = None
+                for key in list(additional_args.keys()):
+                    if key not in handler.callback.spec.args:
+                        del additional_args[key]
                 await handler.callback.callback(event, **additional_args)
