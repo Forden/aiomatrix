@@ -58,6 +58,9 @@ class RoomMessageEvent(RoomEvent):
                 content = supported_msgtypes[raw_content['msgtype']](**raw_content)
             return content
 
+    async def send_reaction(self, key: str) -> 'SentEventResponse':
+        return await self.client.instant_messaging_api.send_reaction(self.room_id, self.event_id, key)
+
     async def send_typing(self, timeout: int = 5000):
         await self.client.typing_notifications_api.send_typing(self.client.me.user_id, self.room_id, timeout)
 

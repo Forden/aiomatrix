@@ -93,7 +93,7 @@ class Text(BaseFilter):
         event_txt = event.content.body
         if self.case_insensitive:
             event_txt = event_txt.lower()
-        return event_txt in self.allowed_texts
+        return any((i in event_txt for i in self.allowed_texts))
 
 
 class Command(Text):

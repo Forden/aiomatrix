@@ -1,3 +1,4 @@
+from .content_repository import ContentRepositoryConfig, UploadedFileResponse
 from .create_room import CreateRoomResponse
 from .listing_rooms import RoomVisibilityResponse, ServerPublicRoomsResponse
 from .login_response import LoginResponse

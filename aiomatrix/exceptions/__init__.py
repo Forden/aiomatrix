@@ -1,4 +1,4 @@
 from .errors import (
-    Forbidden, MatrixAPIError, MatrixAPINetworkError, MissingToken, RoomAliasInUse, UnknownToken,
-    Unrecognized
+    AiomatrixError, Forbidden, MatrixAPIError, MatrixAPINetworkError, MissingToken, RateLimit, RoomAliasInUse,
+    UnknownToken, Unrecognized
 )

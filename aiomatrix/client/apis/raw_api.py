@@ -1,7 +1,7 @@
 import asyncio
 import json
 import urllib.parse
-from typing import Dict, List, Optional, Type, TypeVar, Union
+from typing import AsyncGenerator, Dict, List, Optional, Type, TypeVar, Union
 
 import aiohttp
 import pydantic
@@ -40,8 +40,10 @@ class RawAPI:
             },
             **kwargs
         }
-        if 'data' in args:
+        if 'data' in args and isinstance(args['data'], dict):
             args['data'] = canonical_json_dumps(args['data'])
+        else:
+            del args['headers']['Content-Type']
         if self._access_token == '':
             del args['headers']['Authorization']
         try:
@@ -82,6 +84,35 @@ class RawAPI:
                 return r
         else:
             return None
+
+    async def stream_response(self, method: str, chunk_size: int, **kwargs) -> AsyncGenerator[bytes, None]:
+        args = {
+            'method':  'GET',
+            'url':     f'{self._BASE_URL}/{urllib.parse.quote(method)}',
+            'headers': {
+                'Authorization': f'Bearer {self._access_token}',
+            },
+            **kwargs
+        }
+        if 'data' in args:
+            args['data'] = canonical_json_dumps(args['data'])
+        if self._access_token == '':
+            del args['headers']['Authorization']
+        try:
+            async with self._session.request(**args) as resp:
+                if resp.status == 200:
+                    async for chunk in resp.content.iter_chunked(chunk_size):
+                        yield chunk
+                else:
+                    res = await resp.text()
+                    json_response = json.loads(res)
+                    raise exceptions.MatrixAPIError.detect(
+                        json_response['errcode'], json_response['error'], json_response
+                    )
+        except asyncio.TimeoutError:
+            raise exceptions.MatrixAPINetworkError('Request timeout error')
+        except aiohttp.ClientError as e:
+            raise exceptions.MatrixAPINetworkError(f"{type(e).__name__}: {e}")
 
     @property
     def access_token(self):

@@ -40,3 +40,8 @@ class PresenceEnum(str, Enum):
     offline = 'offline'
     online = 'online'
     unavailable = 'unavailable'
+
+
+class ResizingMethodsEnum(str, Enum):
+    crop = 'crop'
+    scale = 'scale'

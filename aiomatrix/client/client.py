@@ -23,6 +23,7 @@ class AiomatrixClient(ContextVarMixin):
         self.presence_api = apis.modules.PresenceAPI(self._raw_api)
         self.instant_messaging_api = apis.modules.InstantMessagingAPI(self.sync_api)
         self.typing_notifications_api = apis.modules.TypingNotifications(self._raw_api)
+        self.content_repository_api = apis.modules.ContentRepositoryAPI(self._raw_api)
 
         self.me: typing.Optional[types.responses.WhoAmIResponse] = None
 

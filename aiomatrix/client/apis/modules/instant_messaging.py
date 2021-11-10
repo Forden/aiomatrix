@@ -17,6 +17,19 @@ class InstantMessagingAPI:
     def __init__(self, sync_api_client: SyncingAPI):
         self._sync_client = sync_api_client
 
+    async def send_reaction(
+            self, room_id: types.primitives.RoomID, event_id: types.primitives.EventID, key: str
+    ) -> types.responses.SentEventResponse:
+        content = {
+            'm.relates_to': {
+                'rel_type': 'm.annotation',
+                'event_id': event_id,
+                'key':      key
+            }
+        }
+        r = await self._sync_client.send_message_event(room_id, types.misc.RoomEventTypesEnum.reaction, content)
+        return r
+
     async def send_message(
             self, room_id: types.primitives.RoomID, text: str, reply_to: Optional[types.primitives.EventID] = None
     ) -> types.responses.SentEventResponse:
