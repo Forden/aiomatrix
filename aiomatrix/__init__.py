@@ -3,4 +3,4 @@ from .client import AiomatrixClient
 from .dispatcher import AiomatrixDispatcher, filters, storage
 from .utils import Executor
 
-__version__ = '0.4.4'
+__version__ = '0.4.6'
