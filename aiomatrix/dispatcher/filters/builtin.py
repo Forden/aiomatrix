@@ -35,10 +35,15 @@ class MessageType(BaseFilter):
         self.message_types = set(map(lambda x: f'{x}', msg_type))
 
     async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient') -> bool:
-        if event.content is not None:
-            if isinstance(event.content, types.events.modules.instant_messaging.NewContent):
-                return event.content.new_content.msgtype in self.message_types
-            return event.content.msgtype in self.message_types
+        if isinstance(event, types.events.RoomMessageEvent):
+            if event.content is not None:
+                if isinstance(event.content, dict):
+                    if 'msgtype' in event.content:
+                        return event.content['msgtype'] in self.message_types
+                elif isinstance(event.content, types.events.modules.instant_messaging.NewContent):
+                    return event.content.new_content.msgtype in self.message_types
+                else:
+                    return event.content.msgtype in self.message_types
         return False
 
 
@@ -90,10 +95,21 @@ class Text(BaseFilter):
         self.allowed_texts = set(self.allowed_texts)
 
     async def check(self, event: types.events.RoomMessageEvent, client: 'AiomatrixClient') -> bool:
-        event_txt = event.content.body
-        if self.case_insensitive:
-            event_txt = event_txt.lower()
-        return any((i in event_txt for i in self.allowed_texts))
+        event_txt = None
+        if isinstance(event, types.events.RoomMessageEvent):
+            if event.content is not None:
+                if isinstance(event, dict) and 'body' in event:
+                    event_txt = event['body']
+                elif isinstance(event.content, types.events.modules.instant_messaging.NewContent):
+                    event_txt = event.content.new_content.body
+                else:
+                    event_txt = event.content.body
+        if event_txt is not None:
+            if self.case_insensitive:
+                event_txt = event_txt.lower()
+            return any((i in event_txt for i in self.allowed_texts))
+        else:
+            return False
 
 
 class Command(Text):
