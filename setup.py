@@ -54,7 +54,8 @@ setup(
     ],
     install_requires=[
         'aiohttp>=3.7.2,<4.0.0',
-        'pydantic==1.8.2'
+        'pydantic==1.8.2',
+        'aiofiles==0.7.0'
     ],
     include_package_data=False,
 )
