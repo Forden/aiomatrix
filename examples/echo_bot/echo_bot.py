@@ -4,7 +4,7 @@ import config
 
 async def echo_handler(
         event: aiomatrix.types.events.RoomMessageEvent,
-        content: aiomatrix.types.modules.instant_messaging.TextContent,
+        content: aiomatrix.types.events.modules.instant_messaging.TextContent,
         client: aiomatrix.AiomatrixClient
 ):
     await client.instant_messaging_api.send_notice(room_id=event.room_id, text=content.body, reply_to=event.event_id)
