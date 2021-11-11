@@ -18,7 +18,7 @@ class BasicEvent(MatrixObject):
 class UnsignedData(BaseModel):
     age: Optional[int]
     redacted_because: Optional[dict]  # exists if event was redacted while client was offline
-    transcation_id: Optional[str]
+    transaction_id: Optional[str]
 
 
 class RoomEvent(BasicEvent, ContextClientMixin):
